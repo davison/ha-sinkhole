@@ -1,0 +1,17 @@
+FROM alpine:latest
+
+LABEL org.opencontainers.image.source=https://github.com/ha-sinkhole/vip-manager
+LABEL org.opencontainers.image.description="Manages a virtual IP (VIP) as a shared resource and determines which node should own the VIP based on healthchecks."
+LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.version="0.1.0"
+
+RUN apk add --no-cache keepalived bash curl gettext
+
+COPY keepalived.conf.template /etc/keepalived/keepalived.conf.template
+COPY healthcheck.sh /usr/local/bin/healthcheck.sh
+COPY entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /usr/local/bin/healthcheck.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

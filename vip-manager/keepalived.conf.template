@@ -1,0 +1,32 @@
+global_defs {
+   router_id "$VRRP_ROUTER_ID"
+   enable_script_security
+}
+
+vrrp_script healthcheck {
+   script "/usr/local/bin/healthcheck.sh"
+   interval 2
+   fall 2
+   rise 2
+}
+
+vrrp_instance VI_DNS {
+   state $NODE_STATE
+   interface $INTERFACE
+   virtual_router_id 51 # This ID must be the same on all nodes in the cluster
+   priority $NODE_PRIORITY
+   advert_int 1
+   authentication {
+      auth_type PASS
+      auth_pass $VRRP_PASSWORD
+   }
+   virtual_ipaddress {
+      $VIRTUAL_IP/32
+   }
+   track_script {
+      healthcheck
+   }
+   notify_master "/usr/bin/logger -t keepalived 'Entering MASTER state'"
+   notify_backup "/usr/bin/logger -t keepalived 'Entering BACKUP state'"
+   notify_fault "/usr/bin/logger -t keepalived 'Entering FAULT state'"
+}

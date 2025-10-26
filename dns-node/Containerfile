@@ -1,0 +1,24 @@
+FROM alpine:latest
+
+LABEL org.opencontainers.image.source=https://github.com/ha-sinkhole/dns-node
+LABEL org.opencontainers.image.description="DNS resolver that uses provided blocklists and then forwards to configured upstream resolvers."
+LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.version="0.1.0"
+
+# Install coredns (which creates the user), gettext (for envsubst),
+# and su-exec (to drop privileges)
+RUN apk add --no-cache coredns gettext su-exec bash
+
+COPY Corefile.template /etc/coredns/Corefile.template
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# default ENV var values (override in /etc/ha-sinkhole/sinkhole.env)
+ENV UPSTREAM_DNS="1.1.1.1 9.9.9.9"
+
+# Entrypoint will run as root by default
+ENTRYPOINT ["/entrypoint.sh"]
+
+# This CMD is passed as arguments ("$@") to the entrypoint.
+# This is the default CoreDNS config path.
+CMD ["-conf", "/etc/coredns/Corefile"]

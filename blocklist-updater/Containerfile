@@ -1,0 +1,13 @@
+FROM alpine:latest
+
+LABEL org.opencontainers.image.source=https://github.com/ha-sinkhole/blocklist_updater
+LABEL org.opencontainers.image.description="A simple container to download and update blocklists for ha-sinkhole."
+LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.version="0.1.0"
+
+RUN apk add --no-cache python
+
+COPY process_lists.py /usr/local/bin/process_lists.py
+RUN chmod +x /usr/local/bin/process_lists.py
+
+ENTRYPOINT ["/usr/local/bin/process_lists.py"]

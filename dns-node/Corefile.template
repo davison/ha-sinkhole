@@ -1,0 +1,18 @@
+.:53 {
+    health :8080 {
+       lameduck 5s
+    }
+    reload 15m
+    log . {
+        class error
+    }
+    hosts /data/blocklist.hosts {
+        fallthrough
+    }
+    cache 3600
+    forward . ${UPSTREAM_DNS} {
+       policy random
+       health_check 3s
+    }
+    errors
+}
