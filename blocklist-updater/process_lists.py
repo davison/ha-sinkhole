@@ -121,19 +121,19 @@ def main():
     default_url = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
     
     blocklist_urls_env = os.environ.get('BLOCKLIST_URLS')    
-    adlist_urls: List[str] = []
+    blocklist_urls: List[str] = []
 
     if blocklist_urls_env:
-        adlist_urls = blocklist_urls_env.split()
+        blocklist_urls = blocklist_urls_env.split()
 
-    if not adlist_urls:
+    if not blocklist_urls:
         print(f"WARNING: BLOCKLIST_URLS not provided or was empty. Defaulting to: {default_url}")
-        adlist_urls = [default_url]
+        blocklist_urls = [default_url]
 
-    for url in adlist_urls:
+    for url in blocklist_urls:
         fetch_and_parse_list(url)
     
-    generate_hosts_file("adlists.hosts")
+    generate_hosts_file("/data/blocklists.hosts")
 
 
 if __name__ == "__main__":
