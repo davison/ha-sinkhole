@@ -14,12 +14,12 @@ Whether you're installing on a raspberry pi, a bare metal server, a local VM, or
 
 1. Ensure your host machine has an up to date `linux` distro.
 2. You will need a container management application installed. [podman](https://podman.io/) is strongly recommended, [docker](https://www.docker.com/) should also just work. Install using your distro's packaging tool.
-3. Run the `ha-sinkhole` installer and configure the required variables of `VIP` and `VRRP_PASSWORD`. All the other options can be skipped and left at default values for now.
+3. Run the `ha-sinkhole` installer and configure the required variables of `VIP` and `VRRP_SECRET`. All the other options can be skipped and left at default values for now.
 
     ```bash
     curl https://github.com/davison/ha-sinkhole/install.sh | bash 
     ```
-    `VIP` and `VRRP_PASSWORD` must be the *same* on every node you want to cluster.
+    `VIP` and `VRRP_SECRET` must be the *same* on every node you want to cluster.
 4. Repeat steps 1 - 3 on all your additional nodes.
 5. Configure your DNS clients with the `VIP` address.
 6. Enjoy ad-free browsing with highly available DNS!

@@ -5,7 +5,7 @@ set -euo pipefail
 # --- Required Variables ---
 # These MUST be set by the user
 : "${VIRTUAL_IP?Missing VIRTUAL_IP. Set this to the floating IP address.}"
-: "${VRRP_PASSWORD?Missing VRRP_PASSWORD. Set this for VRRP authentication.}"
+: "${VRRP_SECRET?Missing VRRP_SECRET. Set this for VRRP authentication.}"
 
 # --- Optional Variables with Defaults ---
 
@@ -37,7 +37,7 @@ echo "INTERFACE:      \"$INTERFACE\""
 echo "NODE_STATE:     \"$NODE_STATE\""
 echo "NODE_PRIORITY:  \"$NODE_PRIORITY\""
 echo "VRRP_ROUTER_ID: \"$VRRP_ROUTER_ID\""
-echo "VRRP_PASSWORD:  [set]"
+echo "VRRP_SECRET:      [set]"
 echo "--------------------------------"
 
 echo "Generating keepalived.conf..."
