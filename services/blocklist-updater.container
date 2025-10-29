@@ -1,0 +1,12 @@
+[Unit]
+Description=HA Sinkhole Blocklist Updater
+# This service is not meant to be started or enabled directly
+RefuseManualStart=yes
+RefuseManualStop=yes
+
+[Container]
+Image=ghcr.io/davison/ha-sinkhole-blocklist-updater:latest
+EnvironmentFile=/etc/ha-sinkhole/sinkhole.env
+Volume=/var/lib/ha-sinkhole/data:/data:Z
+LogDriver=journald
+# No restart policy - this is a one-shot task

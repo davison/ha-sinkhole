@@ -1,0 +1,18 @@
+[Unit]
+Description=HA Sinkhole DNS Node
+Wants=network-online.target
+After=network-online.target
+# Ensures the blocklist file exists before this service starts for the first time
+Requires=blocklist-updater.service
+After=blocklist-updater.service
+
+[Container]
+Image=ghcr.io/davison/ha-sinkhole-dns-node:latest
+EnvironmentFile=/etc/ha-sinkhole/sinkhole.env
+Network=host
+Volume=/var/lib/ha-sinkhole/data:/data:Z
+LogDriver=journald
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

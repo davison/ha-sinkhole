@@ -1,0 +1,11 @@
+[Unit]
+Description=Run HA Sinkhole Blocklist Updater every 6 hours
+
+[Timer]
+# Run every 6 hours
+OnCalendar=*-*-* 00/6:00:00
+# Run on boot if the timer was missed (e.g., system was down)
+Persistent=true
+
+[Install]
+WantedBy=timers.target
