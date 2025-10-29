@@ -103,6 +103,9 @@ for entry in "${images_to_build[@]}"; do
   fi
 done
 
+# clean up layers and images
+${container_cmd} rmi $(${container_cmd} images --filter "dangling=true" -q --no-trunc)
+
 if [[ "$build_failed" -eq 0 ]]; then
   heading "${green}" "📝 Summary"
   success "All images built successfully...\n"
