@@ -30,10 +30,11 @@ Whether you're installing on a raspberry pi, a bare metal server, a local VM, or
 
 Sinkhole nodes are made up from 3 containers, each performing a specific function. All containers are configured through the environment (typically a single `.env` file that is local to the node). This can be ingested via `systemd` and `podman quadlets` or with `docker compose` files.
 
-1. [dns-node](./dns-node/README.md) is the DNS resolver and is built on top of [coredns](https://coredns.io/), a very fast, reliable and highly configurable resolver. 
-2. [blocklist-updater](./blocklist-updater/README.md) is a cron like container that periodically updates the sources for the domains to block.
-3. [vip-manager](./vip-manager/README.md) based on [keepalived](https://www.keepalived.org/) is the component that manages the VIP and elections of master nodes among the cluster members.
+1. [dns-node](./dns-node/) is the DNS resolver and is built on top of [coredns](https://coredns.io/), a very fast, reliable and highly configurable resolver. 
+2. [blocklist-updater](./blocklist-updater/) is a cron like container that periodically updates the sources for the domains to block.
+3. [vip-manager](./vip-manager/) based on [keepalived](https://www.keepalived.org/) is the component that manages the VIP and elections of master nodes among the cluster members.
 
+The [example .env file](./services/sinkhole.example.env) documents all of the available configuration items for the node. It's shared among the 3 containers.
 
 ### Log Aggregators
 
