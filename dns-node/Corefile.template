@@ -6,7 +6,7 @@
     log . {
         class error
     }
-    hosts /data/blocklist.hosts {
+    hosts /data/blocklists.hosts {
         fallthrough
     }
     cache 3600
