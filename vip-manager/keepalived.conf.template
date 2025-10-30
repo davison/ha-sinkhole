@@ -1,3 +1,4 @@
+
 global_defs {
    router_id "$VRRP_ROUTER_ID"
    enable_script_security

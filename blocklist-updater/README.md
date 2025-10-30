@@ -12,13 +12,7 @@ This container runs a Python script that updates the blocklists every 6 hours. I
 
 1. **Configuration**: Ensure that the environment variables required for the blocklist updater are set in the `/etc/ha-sinkhole/sinkhole.env` file. This file should include any necessary URLs or sources for the blocklists.
 
-2. **Service Management**: The `blocklist-updater` container is managed by systemd. You can start, stop, or check the status of the service using the following commands:
-
-   ```bash
-   systemctl start blocklist-updater.service
-   systemctl stop blocklist-updater.service
-   systemctl status blocklist-updater.service
-   ```
+2. **Service Management**: The `blocklist-updater` container is managed by systemd. It should only be operated via the `timer` unit and is not designed to be enabled, disabled, started or stopped via `systemctl`.
 
 3. **Timer**: The blocklist updater is scheduled to run every 6 hours using a systemd timer. You can check the timer status with:
 

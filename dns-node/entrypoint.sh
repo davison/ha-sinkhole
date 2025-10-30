@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-#set -x
-
 # 1. Run as ROOT: Substitute env vars and create final config
 envsubst < /etc/coredns/Corefile.template > /etc/coredns/Corefile
 
