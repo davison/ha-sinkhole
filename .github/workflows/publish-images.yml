@@ -1,14 +1,12 @@
-# .github/workflows/build-images.yml
+# .github/workflows/publish-images.yml
 name: Build and Push Images
 
-# Triggers:
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
-# Permissions:
 permissions:
   contents: read
   packages: write # Required to push to GHCR
@@ -21,22 +19,20 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      # Outputs must be valid identifiers (no hyphens)
-      dns_node: ${{ steps.filter.outputs.dns-node }}
-      vip_manager: ${{ steps.filter.outputs.vip-manager }}
-      blocklist_updater: ${{ steps.filter.outputs.blocklist-updater }}
-
+      # We output a single JSON array named 'services'
+      # e.g., ["dns-node", "vip-manager"]
+      services: ${{ steps.filter.outputs.changes }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Use paths-filter action
-        uses: dorny/paths-filter@v3
         id: filter
+        uses: dorny/paths-filter@v3
         with:
           # Define a filter for each image.
-          # A change in any file inside this directory (or subdirectories)
-          # will set the corresponding output to 'true'.
+          # The 'outputs.changes' will contain an array of the keys
+          # for the filters that matched.
           filters: |
             dns-node:
               - 'dns-node/**'
@@ -44,19 +40,36 @@ jobs:
               - 'vip-manager/**'
             blocklist-updater:
               - 'blocklist-updater/**'
+          # Add more services here as needed
+          # new-service:
+          #   - 'new-service/**'
 
   ### --------------------------------------------------------------------
-  ###  JOB 2: Build dns-node
-  ###  Runs only if the 'dns_node' filter was 'true'.
+  ###  JOB 2: Build and Push
+  ###  Runs a matrix build, one for each service in the output array.
   ### --------------------------------------------------------------------
-  build-dns-node:
+  build-and-push:
     runs-on: ubuntu-latest
-    needs: [detect-changes] # Must wait for the first job
-    if: needs.detect-changes.outputs.dns_node == 'true' # Only run if changed
+    needs: [detect-changes]
+    # Only run this job if the 'services' array is not empty
+    if: needs.detect-changes.outputs.services != '[]'
+    strategy:
+      fail-fast: false
+      # Create a matrix from the JSON array output by the 'detect-changes' job
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # *** Set up QEMU for multi-arch emulation ***
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # *** Set up Docker Buildx (the multi-arch builder) ***
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -65,121 +78,40 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Parameterized to use the matrix variable
       - name: Read version from VERSION file
         id: read_version
         run: |
-          echo "version=$(cat dns-node/VERSION)" >> $GITHUB_OUTPUT
+          echo "version=$(cat ${{ matrix.service }}/VERSION)" >> $GITHUB_OUTPUT
 
+      # Parameterized to use the matrix variable
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/dns-node
+          images: ghcr.io/${{ github.repository }}/${{ matrix.service }}
           tags: |
             # Tag with the version from the VERSION file
             type=raw,value=${{ steps.read_version.outputs.version }}
             # If this is a push to 'main', also tag as 'latest'
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
+      # Parameterized to use the matrix variable
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./dns-node
-          file: ./dns-node/Containerfile
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Containerfile
           # Only push if it's NOT a pull request
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             BUILD_VERSION=${{ steps.read_version.outputs.version }}
+          
+          # *** Define all platforms to build ***
+          platforms: linux/amd64,linux/arm64,linux/ppc64
 
-  ### --------------------------------------------------------------------
-  ###  JOB 3: Build vip-manager
-  ###  Runs only if the 'vip_manager' filter was 'true'.
-  ### --------------------------------------------------------------------
-  build-vip-manager:
-    runs-on: ubuntu-latest
-    needs: [detect-changes]
-    if: needs.detect-changes.outputs.vip_manager == 'true'
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Read version from VERSION file
-        id: read_version
-        run: |
-          echo "version=$(cat vip-manager/VERSION)" >> $GITHUB_OUTPUT
-
-      - name: Extract metadata (tags, labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}/vip-manager
-          tags: |
-            type=raw,value=${{ steps.read_version.outputs.version }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./vip-manager
-          file: ./vip-manager/Containerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            BUILD_VERSION=${{ steps.read_version.outputs.version }}
-
-  ### --------------------------------------------------------------------
-  ###  JOB 4: Build blocklist-updater
-  ###  Runs only if the 'blocklist_updater' filter was 'true'.
-  ### --------------------------------------------------------------------
-  build-blocklist-updater:
-    runs-on: ubuntu-latest
-    needs: [detect-changes]
-    if: needs.detect-changes.outputs.blocklist_updater == 'true'
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Read version from VERSION file
-        id: read_version
-        run: |
-          echo "version=$(cat blocklist-updater/VERSION)" >> $GITHUB_OUTPUT
-
-      - name: Extract metadata (tags, labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}/blocklist-updater
-          tags: |
-            type=raw,value=${{ steps.read_version.outputs.version }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./blocklist-updater
-          file: ./blocklist-updater/Containerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            BUILD_VERSION=${{ steps.read_version.outputs.version }}
-            
+          # *** Add caching to speed up builds ***
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
