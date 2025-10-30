@@ -1,9 +1,11 @@
 FROM alpine:latest
 
+ARG BUILD_VERSION
+
 LABEL org.opencontainers.image.source=https://github.com/ha-sinkhole/dns-node
 LABEL org.opencontainers.image.description="DNS resolver that uses provided blocklists and then forwards to configured upstream resolvers."
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.version="0.1.0"
+LABEL org.opencontainers.image.version="$BUILD_VERSION"
 
 # Install coredns (which creates the user), gettext (for envsubst),
 # and su-exec (to drop privileges)

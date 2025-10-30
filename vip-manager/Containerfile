@@ -1,9 +1,11 @@
 FROM alpine:latest
 
+ARG BUILD_VERSION
+
 LABEL org.opencontainers.image.source=https://github.com/ha-sinkhole/vip-manager
 LABEL org.opencontainers.image.description="Manages a virtual IP (VIP) as a shared resource and determines which node should own the VIP based on healthchecks."
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.version="0.1.0"
+LABEL org.opencontainers.image.version="$BUILD_VERSION"
 
 RUN apk add --no-cache keepalived bash curl gettext
 

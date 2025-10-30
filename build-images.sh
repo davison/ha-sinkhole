@@ -14,19 +14,7 @@ discover_images() {
   while IFS= read -r containerfile_path; do
     container_dir=$(dirname "$containerfile_path")
     build_dir_name=$(basename "$container_dir")
-    
-    label_tag=$(
-      grep -i '^LABEL' "$containerfile_path" |
-      grep -Poi '([a-zA-Z0-9.-]*version[a-zA-Z0-9.-]*|tag)\s*=\s*"\K[^"]+' |
-      head -n 1
-    )
-
-    if [[ -n "$label_tag" ]]; then
-      tag_name="${image_prefix}/${build_dir_name}:${label_tag}"
-    else
-      tag_name="${image_prefix}/${build_dir_name}:latest"
-    fi
-
+    tag_name="${image_prefix}/${build_dir_name}:local"    
     output_data+="$tag_name|$build_dir_name"$'\n'
 
     printf "${blue}>> Found ${yellow}%s${nc} with name and tag ${green}%s${nc}\n" "$build_dir_name" "$tag_name" >&2
@@ -58,7 +46,7 @@ fi
 readonly container_cmd
 printf "${blue}>> Using ${yellow}%s${nc} as container runtime.${nc}\n" "$container_cmd" >&2
 
-heading "${blue}" "🔍 Discovering images and parsing metadata"
+heading "${blue}" "🔍 Discovering images"
 discovery_output=$(discover_images)
 
 declare -a images_to_build=()
@@ -73,23 +61,16 @@ fi
 
 heading "${yellow}" "📦 Starting Container Builds (${#images_to_build[@]} found)"
 build_failed=0
-
-# Array to store all created temp logs for easy cleanup
-declare -a temp_log_files=()
-trap 'cleanup "${temp_log_files[@]}"' EXIT
+  
+temp_log_file=$(mktemp --tmpdir buildlog.XXXXXX)
 
 for entry in "${images_to_build[@]}"; do
   IFS='|' read -r tag dir <<< "$entry"
-  
-  temp_log_file=$(mktemp --tmpdir buildlog.XXXXXX)
-  temp_log_files+=("$temp_log_file")
 
   printf "${blue}>> Building ${yellow}%s${nc}\n" "$tag" >&2
 
   if run_with_spinner "${container_cmd} building" "${temp_log_file}" "${container_cmd}" build --no-cache -t "$tag" "$script_dir/$dir"; then
     success "OK"
-    rm -f "${temp_log_file}"
-    unset temp_log_files[-1]
   else
     error "build failed"
     printf "\n${red}" >&2
@@ -97,14 +78,13 @@ for entry in "${images_to_build[@]}"; do
     printf "${nc}\n" >&2
     
     warn "build log retained at: ${yellow}${temp_log_file}${nc}\n"
-    unset temp_log_files[-1]
 
     build_failed=1
   fi
 done
 
 # clean up layers and images
-${container_cmd} rmi $(${container_cmd} images --filter "dangling=true" -q --no-trunc)
+${container_cmd} rmi $(${container_cmd} images --filter "dangling=true" -q --no-trunc) > /dev/null 2>&1 || true
 
 if [[ "$build_failed" -eq 0 ]]; then
   heading "${green}" "📝 Summary"
