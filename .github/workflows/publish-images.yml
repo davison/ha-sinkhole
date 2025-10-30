@@ -1,0 +1,185 @@
+# .github/workflows/build-images.yml
+name: Build and Push Images
+
+# Triggers:
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Permissions:
+permissions:
+  contents: read
+  packages: write # Required to push to GHCR
+
+jobs:
+  ### --------------------------------------------------------------------
+  ###  JOB 1: Detect Changes
+  ###  This job checks which image directories have changed.
+  ### --------------------------------------------------------------------
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      # Outputs must be valid identifiers (no hyphens)
+      dns_node: ${{ steps.filter.outputs.dns-node }}
+      vip_manager: ${{ steps.filter.outputs.vip-manager }}
+      blocklist_updater: ${{ steps.filter.outputs.blocklist-updater }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use paths-filter action
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          # Define a filter for each image.
+          # A change in any file inside this directory (or subdirectories)
+          # will set the corresponding output to 'true'.
+          filters: |
+            dns-node:
+              - 'dns-node/**'
+            vip-manager:
+              - 'vip-manager/**'
+            blocklist-updater:
+              - 'blocklist-updater/**'
+
+  ### --------------------------------------------------------------------
+  ###  JOB 2: Build dns-node
+  ###  Runs only if the 'dns_node' filter was 'true'.
+  ### --------------------------------------------------------------------
+  build-dns-node:
+    runs-on: ubuntu-latest
+    needs: [detect-changes] # Must wait for the first job
+    if: needs.detect-changes.outputs.dns_node == 'true' # Only run if changed
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read version from VERSION file
+        id: read_version
+        run: |
+          echo "version=$(cat dns-node/VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/dns-node
+          tags: |
+            # Tag with the version from the VERSION file
+            type=raw,value=${{ steps.read_version.outputs.version }}
+            # If this is a push to 'main', also tag as 'latest'
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./dns-node
+          file: ./dns-node/Containerfile
+          # Only push if it's NOT a pull request
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_VERSION=${{ steps.read_version.outputs.version }}
+
+  ### --------------------------------------------------------------------
+  ###  JOB 3: Build vip-manager
+  ###  Runs only if the 'vip_manager' filter was 'true'.
+  ### --------------------------------------------------------------------
+  build-vip-manager:
+    runs-on: ubuntu-latest
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.vip_manager == 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read version from VERSION file
+        id: read_version
+        run: |
+          echo "version=$(cat vip-manager/VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/vip-manager
+          tags: |
+            type=raw,value=${{ steps.read_version.outputs.version }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./vip-manager
+          file: ./vip-manager/Containerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_VERSION=${{ steps.read_version.outputs.version }}
+
+  ### --------------------------------------------------------------------
+  ###  JOB 4: Build blocklist-updater
+  ###  Runs only if the 'blocklist_updater' filter was 'true'.
+  ### --------------------------------------------------------------------
+  build-blocklist-updater:
+    runs-on: ubuntu-latest
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.blocklist_updater == 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read version from VERSION file
+        id: read_version
+        run: |
+          echo "version=$(cat blocklist-updater/VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/blocklist-updater
+          tags: |
+            type=raw,value=${{ steps.read_version.outputs.version }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./blocklist-updater
+          file: ./blocklist-updater/Containerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_VERSION=${{ steps.read_version.outputs.version }}
+            
