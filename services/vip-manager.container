@@ -4,11 +4,13 @@ Wants=network-online.target
 After=network-online.target
 
 [Container]
-Image=ghcr.io/davison/ha-sinkhole-vip-manager:latest
+Image=ghcr.io/davison/ha-sinkhole/vip-manager:latest
 EnvironmentFile=/etc/ha-sinkhole/sinkhole.env
 Network=host
-Capability=NET_ADMIN,NET_RAW
+AddCapability=NET_ADMIN NET_RAW
 LogDriver=journald
+
+[Service]
 Restart=always
 
 [Install]

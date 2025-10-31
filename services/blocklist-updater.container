@@ -5,7 +5,7 @@ RefuseManualStart=yes
 RefuseManualStop=yes
 
 [Container]
-Image=ghcr.io/davison/ha-sinkhole-blocklist-updater:latest
+Image=ghcr.io/davison/ha-sinkhole/blocklist-updater:latest
 EnvironmentFile=/etc/ha-sinkhole/sinkhole.env
 Volume=/var/lib/ha-sinkhole/data:/data:Z
 LogDriver=journald
