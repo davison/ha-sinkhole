@@ -9,6 +9,7 @@ vrrp_script healthcheck {
    interval 2
    fall 2
    rise 2
+   weight 5
 }
 
 vrrp_instance VI_DNS {
