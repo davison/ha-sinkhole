@@ -23,7 +23,11 @@ sudo loginctl enable-linger $USER
 
 mkdir -p /etc/ha-sinkhole
 mkdir -p $HOME/.local/ha-sinkhole/data
-[ -f /etc/ha-sinkhole/sinkhole.env ] || cp "$script_dir/services/sinkhole.example.env" /etc/ha-sinkhole/sinkhole.env
+if [ -f /etc/ha-sinkhole/sinkhole.env ]; then
+  cp "$script_dir/services/sinkhole.example.env" /etc/ha-sinkhole/sinkhole.env
+  warning "/etc/sinkhole.env created. Please edit this file to configure your installation then re-run this installer."
+  exit 0
+fi
 
 
 # ---------------------------------------------------------------------------
@@ -32,10 +36,10 @@ heading "${yellow}" "📦 Installing systemd units"
 
 # TODO: where does this actually come from? It needs to vary per container
 readonly target_version="0.1.1"
-sed 's/vip-manager:latest/vip-manager:'"$target_version"'/' "$script_dir/services/vip-manager.container" > /etc/containers/system/vip-manager.container
-sed 's/dns-node:latest/dns-node:'"$target_version"'/' "$script_dir/services/dns-node.container" > /etc/containers/system/users/dns-node.container
-sed 's/blocklist-updater:latest/blocklist-updater:'"$target_version"'/' "$script_dir/services/blocklist-updater.container" > /etc/containers/system/users/blocklist-updater.container
-cp $script_dir/services/blocklist-updater.timer /etc/systemd/system/users/
+sed 's/vip-manager:latest/vip-manager:'"$target_version"'/' "$script_dir/services/vip-manager.container" | sudo tee /etc/containers/systemd/vip-manager.container >/dev/null
+sed 's/dns-node:latest/dns-node:'"$target_version"'/' "$script_dir/services/dns-node.container" | sudo tee /etc/containers/systemd/users/dns-node.container > /dev/null
+sed 's/blocklist-updater:latest/blocklist-updater:'"$target_version"'/' "$script_dir/services/blocklist-updater.container" | sudo tee /etc/containers/systemd/users/blocklist-updater.container > /dev/null
+sudo cp $script_dir/services/blocklist-updater.timer /etc/systemd/system/users/
 sudo systemctl daemon-reload
 systemctl --user daemon-reload
 
