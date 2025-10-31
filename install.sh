@@ -5,46 +5,56 @@ IFS=$'\n\t'
 
 readonly script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 source "$script_dir/lib-utils.sh"
-needs_root
+no_root
 
-readonly install-log="/var/log/ha-sinkhole-install.log"
+# TODO: Check for dependencies: podman, systemd, loginctl
+# TODO: get install prefix from args
+
+readonly install-log="/tmp/ha-sinkhole-install.log"
 truncate -s 0 "${install-log}"
 
-# --- Checks ---
+
+# ---------------------------------------------------------------------------
 heading "${blue}" "⚙️  Checking environment and dependencies"
+# ---------------------------------------------------------------------------
+
+# enable long running user services
+sudo loginctl enable-linger $USER
 
 mkdir -p /etc/ha-sinkhole
-mkdir -p /var/lib/ha-sinkhole/data
-chmod -R 755 /var/lib/ha-sinkhole
+mkdir -p $HOME/.local/ha-sinkhole/data
 [ -f /etc/ha-sinkhole/sinkhole.env ] || cp "$script_dir/services/sinkhole.example.env" /etc/ha-sinkhole/sinkhole.env
 
+
+# ---------------------------------------------------------------------------
 heading "${yellow}" "📦 Installing systemd units"
-cp "$script_dir/services/"*.service /etc/systemd/system/
-cp "$script_dir/services/"*.timer /etc/systemd/system/
-systemctl daemon-reload
+# ---------------------------------------------------------------------------
+
+# TODO: where does this actually come from? It needs to vary per container
+readonly target_version="0.1.1"
+sed 's/vip-manager:latest/vip-manager:'"$target_version"'/' "$script_dir/services/vip-manager.container" > /etc/containers/system/vip-manager.container
+sed 's/dns-node:latest/dns-node:'"$target_version"'/' "$script_dir/services/dns-node.container" > /etc/containers/system/users/dns-node.container
+sed 's/blocklist-updater:latest/blocklist-updater:'"$target_version"'/' "$script_dir/services/blocklist-updater.container" > /etc/containers/system/users/blocklist-updater.container
+cp $script_dir/services/blocklist-updater.timer /etc/systemd/system/users/
+sudo systemctl daemon-reload
+systemctl --user daemon-reload
+
 [ $? -eq 0 ] || {
     error "Failed to reload systemd daemon with new service files. Please check the output above."
     exit 1
 }
 success "Systemd service files installed and daemon reloaded."
 
-# Enable the two long-running services
-systemctl enable vip-manager.service
-systemctl enable dns-node.service
+
+# ---------------------------------------------------------------------------
+heading "${green}" "🚀 Starting services"
+# ---------------------------------------------------------------------------
+
 # Enable the timer, not the service. This will trigger the updater
-systemctl enable blocklist-updater.timer
+systemctl --user enable blocklist-updater.timer
+# Enable the two long-running services
+systemctl --user start dns-node.service
+systemctl start vip-manager.service
 
-
-# Start the services
-for service in vip-manager dns-node blocklist-updater.timer; do
-    run_with_spinner "Starting ${service}..." ${install-log} systemctl start "${service}"
-    if [ $? -ne 0 ]; then
-        error "Failed to start ${service}. Please check ${install-log} for details."
-        exit 1
-    else
-        success "OK"
-    fi
-done
-
+success "Services started."
 exit 0
-

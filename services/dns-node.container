@@ -7,11 +7,15 @@ Requires=blocklist-updater.service
 After=blocklist-updater.service
 
 [Container]
-Image=ghcr.io/davison/ha-sinkhole-dns-node:latest
+Image=ghcr.io/davison/ha-sinkhole/dns-node:latest
 EnvironmentFile=/etc/ha-sinkhole/sinkhole.env
-Network=host
 Volume=/var/lib/ha-sinkhole/data:/data:Z
 LogDriver=journald
+PublishPort=1053:1053/udp
+PublishPort=1053:1053/tcp
+PublishPort=8080:8080
+
+[Service]
 Restart=always
 
 [Install]
