@@ -1,11 +1,9 @@
-.:53 {
+.:1053 {
     health :8080 {
        lameduck 5s
     }
     reload 15m
-    log . {
-        class error
-    }
+    log
     hosts /data/blocklists.hosts {
         fallthrough
     }
