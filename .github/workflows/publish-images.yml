@@ -84,6 +84,12 @@ jobs:
         run: |
           echo "version=$(cat ${{ matrix.service }}/VERSION)" >> $GITHUB_OUTPUT
 
+      - name: Read description from Containerfile
+        id: extract_description
+        run: |
+          DESC=$(awk -F'"' '/org.opencontainers.image.description/ {print $2}' ./${{ matrix.service }}/Containerfile)
+          echo "description=$DESC" >> $GITHUB_OUTPUT
+
       # Parameterized to use the matrix variable
       - name: Extract metadata (tags, labels)
         id: meta
@@ -115,3 +121,4 @@ jobs:
           # *** Add caching to speed up builds ***
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=${{ steps.extract_description.outputs.description }}
