@@ -35,7 +35,7 @@ no_root() {
 
 needs_root() {
   is_root || {
-    error "this script must be run as root. Please rerun with 'sudo' or as root user."
+    error "this script must be run with 'sudo'"
     return 1
   }
   return 0
