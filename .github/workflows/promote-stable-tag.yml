@@ -1,0 +1,63 @@
+name: Promote Stable Tag
+
+on:
+  # make the workflow manually triggerable from the Actions tab
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'The service to re-tag'
+        required: true
+        type: choice
+        # These should match the keys from 'publish-images.yml'
+        options:
+          - dns-node
+          - vip-manager
+          - blocklist-updater
+      source_tag:
+        description: 'The existing version tag to point "stable" to (e.g., v1.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write # Required to push the new tag to GHCR
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Display input'
+        run: |
+          echo "Source Repo: ${{ github.repository }}"
+          echo "Service:     ${{ inputs.service }}"
+          echo "Source Tag:  ${{ inputs.source_tag }}"
+          echo "Target Tag:  stable"
+
+      - name: Install crane
+        uses: imjasonh/setup-crane@v0.1
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # Define the full image names
+      - name: Set up image names
+        id: image_names
+        run: |
+          IMAGE_NAME="ghcr.io/${{ github.repository }}/${{ inputs.service }}"
+          echo "source_image=${IMAGE_NAME}:${{ inputs.source_tag }}" >> $GITHUB_OUTPUT
+          echo "target_image=${IMAGE_NAME}:stable" >> $GITHUB_OUTPUT
+
+      # move the 'stable' tag to point to the manifest of the 'source_tag'
+      - name: Re-tag image with crane
+        run: |
+          crane tag ${{ steps.image_names.outputs.source_image }} stable
+
+      - name: Verify new tag digest
+        run: |
+          echo "Verifying tags... (digests should match)"
+          echo "Source (${{ inputs.source_tag }}):"
+          crane digest ${{ steps.image_names.outputs.source_image }}
+          
+          echo "Target (stable):"
+          crane digest ${{ steps.image_names.outputs.target_image }}
