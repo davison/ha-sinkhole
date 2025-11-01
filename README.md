@@ -2,7 +2,7 @@
 
 Inspired by the fantastic [pi-hole](https://github.com/pi-hole/pi-hole) project, big shout out to the creators and contributors there!
 
-I've used pi-hole for years and couldn't live without that functionality on my network, but it's not easy to make it highly available and I really wanted that. There are several guides for making pi-hole HA out there, but they're fragile, bolt-on solutions which are unsupported by the pi-hole project.
+I've used pi-hole for years and couldn't live without that functionality on my network, but it's not easy to make it highly available and I really wanted that. There are several guides available for making pi-hole HA, but they're fragile, bolt-on solutions which are unsupported by the pi-hole project.
 
 I created `ha-sinkhole` to solve specifically that problem. It addresses that single concern and does not, by design, offer many of the existing pi-hole features (notably DHCP). It also currently comes with no visualisation features or web interface, but that will change once the core HA sinkhole feature is working and stable.
 
@@ -17,7 +17,8 @@ Whether you're installing on a raspberry pi, a bare metal server, a local VM, or
 3. Run the `ha-sinkhole` installer and configure the required variables of `VIP` and `VRRP_SECRET`. All the other options can be skipped and left at default values for now.
 
     ```bash
-    curl https://github.com/davison/ha-sinkhole/install.sh | bash 
+    git clone https://github.com/davison/ha-sinkhole.git && cd ha-sinkhole
+    ./install.sh
     ```
     `VIP` and `VRRP_SECRET` must be the *same* on every node you want to cluster.
 4. Repeat steps 1 - 3 on all your additional nodes.
