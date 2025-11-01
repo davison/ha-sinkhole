@@ -8,18 +8,21 @@ The `dns-node` container is built on top of CoreDNS, a flexible and extensible D
 
 ## Configuration
 
-The `dns-node` container is configured through the environment variables defined in the `/etc/ha-sinkhole/sinkhole.env` file. Ensure that this file is properly set up before starting the container.
+The `dns-node` container is configured through the following environment variables defined in the `/etc/ha-sinkhole/sinkhole.env` file. 
+
+*   `UPSTREAM_DNS=1.1.1.1 9.9.9.9`
+    A space separated list (no quotes) of upstream DNS server IP addresses that you wish to forward non-blocked queries to. Defaults to Quad1 and Quad9.
 
 ## Usage
 
-To run the `dns-node` container, ensure that the `blocklist-updater` container has already created the `/data/blocklists.hosts` file. This file will be monitored for changes by the `dns-node` container.
+To run the `dns-node` container, ensure that the [blocklist-updater](../blocklist-updater/) container has already created the `blocklists.hosts` file. This file will be monitored for changes by the `dns-node` container. By default this file will be in `/var/lib/ha-sinkhole/data` on the host file system.
 
 ### Starting the Container
 
 You can start the `dns-node` container using the provided systemd service file located in the `services` directory:
 
 ```bash
-sudo systemctl start dns-node.service
+systemctl --user start dns-node.service
 ```
 
 ### Monitoring Logs
@@ -32,10 +35,10 @@ journalctl -u dns-node.service
 
 ## Health Checks
 
-The `dns-node` container includes health checks to ensure that it is functioning correctly, these are also used by the [vip-manager](../vip-manager/) to determine which node should be primary. You can check the status of the service using:
+The `dns-node` container includes health checks to ensure that it is functioning correctly, these are used by the [vip-manager](../vip-manager/) to determine which node should be primary. You can check the status of the service using:
 
 ```bash
-sudo systemctl status dns-node.service
+systemctl --user status dns-node.service
 ```
 
 ## Troubleshooting

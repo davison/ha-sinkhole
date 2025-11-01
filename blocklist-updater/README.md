@@ -1,23 +1,42 @@
-# blocklist-updater/README.md
-
 # Blocklist Updater
 
-The `blocklist-updater` container is responsible for periodically fetching and processing blocklists to create the `/data/blocklists.hosts` file. This file is essential for the `dns-node` container, which reads it to determine which domains to block.
+The `blocklist-updater` container is responsible for periodically fetching and processing blocklists to create the `blocklists.hosts` file. This file is essential for the `dns-node` container, which reads it to determine which domains to block.
 
 ## Overview
 
-This container runs a Python script that updates the blocklists every 6 hours. It is designed to be run as a systemd service, ensuring that it operates reliably and can be monitored through the system's logging facilities.
+This container runs a Python script that updates the blocklists (daily be default). It is designed to be run as a systemd service on a systemd timer although it will run whenever the [dns-node](../dns-node/) container starts too as that relies on its output.
 
 ## Usage
 
-1. **Configuration**: Ensure that the environment variables required for the blocklist updater are set in the `/etc/ha-sinkhole/sinkhole.env` file. This file should include any necessary URLs or sources for the blocklists.
+1. **Service Management**: The `blocklist-updater` container is managed by systemd. It should only be operated via the `timer` unit and is not designed to be enabled, disabled, started or stopped via `systemctl`.
 
-2. **Service Management**: The `blocklist-updater` container is managed by systemd. It should only be operated via the `timer` unit and is not designed to be enabled, disabled, started or stopped via `systemctl`.
-
-3. **Timer**: The blocklist updater is scheduled to run every 6 hours using a systemd timer. You can check the timer status with:
+3. **Timer**: The blocklist updater is scheduled to run daily using a systemd timer. You can enable and check the timer status with:
 
    ```bash
-   systemctl list-timers
+   systemctl --user enable blocklist-updater.timer
+   systemctl --user list-timers
+   ```
+
+The container must share a volume with the `dns-node` container to ensure that the `blocklists.hosts` file is accessible. This volume is mounted from `/var/lib/ha-sinkhole/data` on the host.
+
+## Configuration
+
+The `blocklist-updater` shares a config file with other Sinkhole components located at `/etc/ha-sinkhole/sinkhole.env`. If you used the installer script it would have created this from a well commented template version highlighting the options available to manage sinkhole nodes.
+
+For this container, the following configuration values can be specified:
+
+*  `BLOCKLIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts`
+   Blocklist URLs are the sources of domain lists that should be sink-holed on the network. The script that fetches them on a timer will de-duplicate before updating the DNS server with the combined, unique list of domains. The default value is Steven Black's list, here are some alternatives and additions:
+      - http://sysctl.org/cameleon/hosts
+      - https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt
+      - https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
+      - https://raw.githubusercontent.com/chadmayfield/pihole-blocklists/master/lists/pi_blocklist_porn_top1m.list
+      - https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt
+  
+   More than one URL in the list should be space separated without quotes.
+   
+   ```
+   BLOCKLIST_URLS=https://example.com/list1 https://test.com/list2
    ```
 
 ## Logging
@@ -27,19 +46,3 @@ The container uses journal logging, which can be accessed with:
 ```bash
 journalctl -u blocklist-updater.service
 ```
-
-## Privileges
-
-The `blocklist-updater` container requires certain privileges to access the necessary resources. Please refer to the local README.md for detailed information on the required privileges.
-
-## Shared Volume
-
-The container must share a volume with the `dns-node` container to ensure that the `/data/blocklists.hosts` file is accessible. This volume is mounted from `/var/lib/ha-sinkhole/data` on the host.
-
-## Initial Run
-
-The initial run of the `blocklist-updater` is crucial to ensure that the `/data/blocklists.hosts` file is created before the `dns-node` container starts. Make sure to start the service manually after deployment to perform this initial run.
-
-## Conclusion
-
-The `blocklist-updater` container plays a vital role in maintaining the effectiveness of the DNS sinkhole by ensuring that the blocklists are up to date. Proper configuration and management of this container are essential for the overall functionality of the `ha-sinkhole` application.
