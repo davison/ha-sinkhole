@@ -2,6 +2,7 @@
 global_defs {
    router_id "$VRRP_ROUTER_ID"
    enable_script_security
+   script_user root
 }
 
 vrrp_script healthcheck {
@@ -9,7 +10,6 @@ vrrp_script healthcheck {
    interval 2
    fall 2
    rise 2
-   weight 5
 }
 
 vrrp_instance VI_DNS {
@@ -28,7 +28,4 @@ vrrp_instance VI_DNS {
    track_script {
       healthcheck
    }
-   notify_master "/usr/bin/logger -t keepalived 'Entering MASTER state'"
-   notify_backup "/usr/bin/logger -t keepalived 'Entering BACKUP state'"
-   notify_fault "/usr/bin/logger -t keepalived 'Entering FAULT state'"
 }
