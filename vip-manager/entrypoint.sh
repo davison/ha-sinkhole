@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -euo pipefail
-
 # --- Required Variables ---
 # These MUST be set by the user
 : "${VIRTUAL_IP?Missing VIRTUAL_IP. Set this to the floating IP address.}"
@@ -47,4 +45,4 @@ envsubst < /etc/keepalived/keepalived.conf.template > /etc/keepalived/keepalived
 
 echo "Starting Keepalived..."
 # Use exec to replace the shell process with keepalived (good for PID 1)
-exec keepalived -n -f /etc/keepalived/keepalived.conf --dont-fork
+exec keepalived -l -D -n -f /etc/keepalived/keepalived.conf --dont-fork
