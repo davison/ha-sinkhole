@@ -14,7 +14,7 @@ on:
           - vip-manager
           - blocklist-updater
       source_tag:
-        description: 'The existing version tag to point "stable" to (e.g., v1.1.0)'
+        description: 'The existing version tag to point "stable" to (e.g. 1.1.0)'
         required: true
         type: string
 
