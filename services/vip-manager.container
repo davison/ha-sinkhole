@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Container]
-Image=ghcr.io/davison/ha-sinkhole/vip-manager:latest
+Image=ghcr.io/davison/ha-sinkhole/vip-manager:stable
 EnvironmentFile=/etc/ha-sinkhole/sinkhole.env
 Network=host
 AddCapability=NET_ADMIN NET_RAW

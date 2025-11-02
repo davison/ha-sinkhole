@@ -7,7 +7,7 @@ Requires=blocklist-updater.service
 After=blocklist-updater.service
 
 [Container]
-Image=ghcr.io/davison/ha-sinkhole/dns-node:latest
+Image=ghcr.io/davison/ha-sinkhole/dns-node:stable
 EnvironmentFile=/etc/ha-sinkhole/sinkhole.env
 Volume=/var/lib/ha-sinkhole/data:/data:Z
 LogDriver=journald
