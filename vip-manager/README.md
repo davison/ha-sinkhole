@@ -8,6 +8,8 @@ The `vip-manager` container is built on top of a base image that includes Keepal
 
 By default, each Sinkhole DNS node uses identical configuration for the `vip-manager` which means that they all start in `BACKUP` state and with the same priority level of 100. It's fine to leave it like this on all nodes if you have no preference which machine is the primary node, however you can increase the priority of a node and optionally start it up as `MASTER` if you have a preferred primary node (for example with better hardware). See the next section for configuration details.
 
+The `dns-node` container is designed to run rootless (using `podman`) and so listens on an unprivileged port (1053) for the DNS requests. In order for clients to be able to use the default DNS port (53) the `vip-manager` additionally creates netfilter rules by using the `nftables` software. These rules rewrite all packets arriving on the `$VIRTUAL_IP` address at port 53 to a `dnat` of 1053. This should be significantly more secure than running the DNS server as root.
+
 ## Configuration
 
 The `vip-manager` shares a config file with other Sinkhole components located at `/etc/ha-sinkhole/sinkhole.env`. If you used the installer script it would have created this from a well commented template version highlighting the options available to manage sinkhole nodes.
@@ -54,7 +56,7 @@ journalctl -u vip-manager
 
 ## Privileges
 
-The `vip-manager` container requires root privileges and additional capabilities to manage network interfaces and IP addresses. These are defined in the systemd unit file.
+The `vip-manager` container requires root privileges and additional capabilities to manage network interfaces, kernel netfilter tables and IP addresses. These are defined in the systemd unit file.
 
 ## Documentation
 
