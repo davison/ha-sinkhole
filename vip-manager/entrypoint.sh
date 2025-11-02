@@ -42,6 +42,10 @@ echo "Generating keepalived.conf..."
 
 # 1. Run as ROOT: Substitute env vars and create final config
 envsubst < /etc/keepalived/keepalived.conf.template > /etc/keepalived/keepalived.conf
+envsubst < /etc/keepalived/port-forward.nft.template > /etc/keepalived/port-forward.nft
+
+echo "Applying nftables port forwarding rules..."
+nft -f /etc/keepalived/port-forward.nft
 
 echo "Starting Keepalived..."
 # Use exec to replace the shell process with keepalived (good for PID 1)

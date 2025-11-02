@@ -7,9 +7,9 @@ LABEL org.opencontainers.image.description="Manages a virtual IP (VIP) as a shar
 LABEL org.opencontainers.image.licenses=MIT
 LABEL org.opencontainers.image.version="$BUILD_VERSION"
 
-RUN apk add --no-cache keepalived bash curl gettext
+RUN apk add --no-cache keepalived bash curl gettext nftables
 
-COPY keepalived.conf.template /etc/keepalived/keepalived.conf.template
+COPY *.template /etc/keepalived/
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
 COPY entrypoint.sh /entrypoint.sh
 
