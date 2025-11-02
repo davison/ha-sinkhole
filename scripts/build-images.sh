@@ -4,6 +4,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly project_root=$(dirname "$script_dir")
 source "$script_dir/lib-utils.sh"
 no_root
 
@@ -19,7 +20,7 @@ discover_images() {
 
     printf "${blue}>> Found ${yellow}%s${nc} with name and tag ${green}%s${nc}\n" "$build_dir_name" "$tag_name" >&2
 
-  done < <(find "$script_dir" -mindepth 2 -maxdepth 2 -type f \( -iname 'Containerfile' -o -iname 'Dockerfile' \))
+  done < <(find "$project_root" -mindepth 2 -maxdepth 2 -type f \( -iname 'Containerfile' -o -iname 'Dockerfile' \))
 
   printf "%s" "$output_data"
 }
@@ -69,7 +70,7 @@ for entry in "${images_to_build[@]}"; do
 
   printf "${blue}>> Building ${yellow}%s${nc}\n" "$tag" >&2
 
-  if run_with_spinner "${container_cmd} building" "${temp_log_file}" "${container_cmd}" build --no-cache -t "$tag" "$script_dir/$dir"; then
+  if run_with_spinner "${container_cmd} building" "${temp_log_file}" "${container_cmd}" build --no-cache -t "$tag" "$project_root/$dir"; then
     success "OK"
   else
     error "build failed"
