@@ -2,7 +2,7 @@
 Description=Run HA Sinkhole Blocklist Updater on schedule
 
 [Timer]
-# Run every 6 hours
+# Run daily
 OnCalendar=daily
 # Run on boot if the timer was missed (e.g., system was down)
 Persistent=true
