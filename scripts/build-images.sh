@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
+# ---------------------------------------------------------------------------
+# Pass 'clean' as an argument to this script in order to build images with 
+# --no-cache specified. Cache is used by default.
+# ---------------------------------------------------------------------------
+
 set -euo pipefail
 IFS=$'\n\t'
 
 readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly project_root=$(dirname "$script_dir")
 source "$script_dir/lib-utils.sh"
-no_root
 
 discover_images() {
   local containerfile_path container_dir tag_name build_dir_name label_tag
@@ -25,14 +29,19 @@ discover_images() {
   printf "%s" "$output_data"
 }
 
-# --- Main Script Logic ---
 
-
-# --- Find Container Runtime ---
+# ---------------------------------------------------------------------------
 heading "${blue}" "⚙️  Checking environment and dependencies"
+# ---------------------------------------------------------------------------
 
-# Default registry/prefix for image tags.
-readonly image_prefix=$(basename "$project_root")
+if is_root ; then
+  warn "Running as root, are you sure this is what you want to do? [y/N]"
+  read -r response
+  if [[ "$response" != "y" && "$response" != "Y" ]]; then
+    error "Please re-run this script as a non-root user."
+    exit 1
+  fi
+fi
 
 declare container_cmd
 if command -v podman >/dev/null 2>&1; then
@@ -44,10 +53,18 @@ else
   exit 1
 fi
 
+no_cache=""
+if [ $# -eq 1 ] && [ "$1" == "clean" ]; then
+  no_cache="--no-cache"
+  printf "${blue}>> Clean building images with no cache.${nc}\n" >&2
+fi
+
 readonly container_cmd
 printf "${blue}>> Using ${yellow}%s${nc} as container runtime.${nc}\n" "$container_cmd" >&2
 
 heading "${blue}" "🔍 Discovering images"
+# Default registry/prefix for image tags.
+readonly image_prefix=$(basename "$project_root")
 discovery_output=$(discover_images)
 
 declare -a images_to_build=()
@@ -60,7 +77,10 @@ if ((${#images_to_build[@]} == 0)); then
   exit 0
 fi
 
+
+# ---------------------------------------------------------------------------
 heading "${yellow}" "📦 Starting Container Builds (${#images_to_build[@]} found)"
+# ---------------------------------------------------------------------------
 build_failed=0
   
 temp_log_file=$(mktemp --tmpdir buildlog.XXXXXX)
@@ -70,7 +90,7 @@ for entry in "${images_to_build[@]}"; do
 
   printf "${blue}>> Building ${yellow}%s${nc}\n" "$tag" >&2
 
-  if run_with_spinner "${container_cmd} building" "${temp_log_file}" "${container_cmd}" build --no-cache -t "$tag" "$project_root/$dir"; then
+  if run_with_spinner "${container_cmd} building" "${temp_log_file}" "${container_cmd}" build ${no_cache} -t "$tag" "$project_root/$dir"; then
     success "OK"
   else
     error "build failed"
