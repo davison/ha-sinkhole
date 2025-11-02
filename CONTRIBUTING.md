@@ -32,6 +32,7 @@ Be respectful and professional. Follow the project's code of conduct in all inte
 - Follow the existing project style and patterns.
 - Keep code readable and well-documented.
 - Add or update docstrings and README sections when public interfaces change.
+- Follow good [commit hygeine](https://www.pullchecklist.com/posts/git-commit-best-practices)
 
 ## Developing and building the container images
 This project contains multiple container images (each in its own immediate sub-directory) and provides a helper script to discover and build them.
