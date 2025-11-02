@@ -32,7 +32,7 @@ discover_images() {
 heading "${blue}" "⚙️  Checking environment and dependencies"
 
 # Default registry/prefix for image tags.
-readonly image_prefix=$(basename "$script_dir")
+readonly image_prefix=$(basename "$project_root")
 
 declare container_cmd
 if command -v podman >/dev/null 2>&1; then
