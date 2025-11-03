@@ -1,16 +1,33 @@
 .:1053 {
+    
+    reload 15m
+    log       
+    
     health :8080 {
        lameduck 5s
     }
-    reload 15m
-    log
-    hosts /data/blocklists.hosts {
+
+    forward ${LOCAL_DOMAIN} ${LOCAL_UPSTREAM_DNS}
+
+    hosts /data/blocklists.hosts {       
+        reload 1h                       
         fallthrough
     }
-    cache 3600
+    
+    # rewrite bare hostname queries (or hostnames with a '.' suffix) to 
+    # append the local domain, or "_invalid" if the local domain was not
+    # specified. This will force resolution via the local domain block
+    # above
+    rewrite name regex ^([^.]+)\.?$ {1}.${LOCAL_DOMAIN}
+
     forward . ${UPSTREAM_DNS} {
        policy random
        health_check 3s
     }
+
+    # cache results locally for an hour by default
+    cache 3600
+
+    # log errors to stdout
     errors
 }
