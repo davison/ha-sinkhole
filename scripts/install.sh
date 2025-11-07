@@ -35,7 +35,6 @@ fi
 heading "${yellow}" "📦 Installing systemd units"
 # ---------------------------------------------------------------------------
 
-# TODO: where does this actually come from? It needs to vary per container
 readonly target_version="stable"
 if [[ $# -eq 1 && $1 == "latest" ]]; then
   target_version="$1"
@@ -44,15 +43,15 @@ fi
 sed 's/vip-manager:latest/vip-manager:'"$target_version"'/' "$project_root/services/vip-manager.container" | sudo tee /etc/containers/systemd/vip-manager.container >/dev/null
 sed 's/dns-node:latest/dns-node:'"$target_version"'/' "$project_root/services/dns-node.container" | sudo tee /etc/containers/systemd/users/dns-node.container > /dev/null
 sed 's/blocklist-updater:latest/blocklist-updater:'"$target_version"'/' "$project_root/services/blocklist-updater.container" | sudo tee /etc/containers/systemd/users/blocklist-updater.container > /dev/null
-sudo cp $project_root/services/blocklist-updater.timer /etc/systemd/user/
+sudo cp $project_root/services/blocklist-updater.timer /etc/systemd/user/ > /dev/null
 sudo systemctl daemon-reload
 r1=$?
 systemctl --user daemon-reload
 r2=$?
-[ $r1 -eq 0 && $r2 -eq 0 ] || {
+if [ $r1 -ne 0 || $r2 -ne 0 ]; then
     error "Failed to reload systemd daemon with new service files. Please check the output above."
     exit 1
-}
+fi
 success "Systemd service files installed and daemon reloaded."
 
 
@@ -61,9 +60,9 @@ heading "${green}" "🚀 Starting services"
 # ---------------------------------------------------------------------------
 
 # Enable the timer, not the service. This will trigger the updater
-systemctl --user enable blocklist-updater.timer
-systemctl --user start dns-node.service
-sudo systemctl start vip-manager.service
+systemctl --user enable blocklist-updater.timer > /dev/null
+systemctl --user start dns-node.service > /dev/null
+sudo systemctl start vip-manager.service > /dev/null
 
 success "Services started."
 exit 0

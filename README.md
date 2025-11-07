@@ -17,7 +17,7 @@ Whether you're installing on a raspberry pi, a bare metal server, a local VM, or
 3. Run the `ha-sinkhole` installer and configure the required variables of `VIRTUAL_IP` and `VRRP_SECRET`. All the other options can be skipped and left at default values for now.
 
     ```bash
-    git clone https://github.com/davison/ha-sinkhole.git && cd ha-sinkhole
+    git clone https://github.com/davison/ha-sinkhole.git && cd ha-sinkhole/scripts
     ./install.sh
     ```
     `VIRTUAL_IP` and `VRRP_SECRET` must be the *same* on every node you want to cluster.
@@ -30,6 +30,12 @@ Whether you're installing on a raspberry pi, a bare metal server, a local VM, or
 ### DNS Sinkhole Nodes
 
 Sinkhole nodes are made up from 3 containers, each performing a specific function. All containers are configured through the environment (typically a single `.env` file that is local to the node). This can be ingested via `systemd` and `podman quadlets` or with `docker compose` files.
+
+The installer script will install `stable` versions of containers and components. If you want the bleeding edge, run the installer with `latest` as an argument:
+
+```bash
+cd ha-sinkhole/scripts && ./install.sh latest
+```
 
 1. [dns-node](./dns-node/) is the DNS resolver and is built on top of [coredns](https://coredns.io/), a very fast, reliable and highly configurable resolver. 
 2. [blocklist-updater](./blocklist-updater/) is a cron like container that periodically updates the sources for the domains to block.

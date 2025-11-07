@@ -7,20 +7,29 @@ We're always happy to receive contributions of any kind. You can help with code 
 ## Code of Conduct
 Be respectful and remember that everyone is volunteering their valuable time here.
 
-# Getting started with code contributions
+## Getting started with code contributions
 1. Fork the repository.
 2. Clone your fork:
-   ```
+   ```bash
    git clone git@github.com:your-username/ha-sinkhole.git
    ```
-1. Create a branch for your change:
+3. Create a branch for your change:
+   ```bash
+   cd ha-sinkhole && git checkout -b feat/my-change
    ```
-   git checkout -b feat/my-change
-   ```
+
+## Reporting issues
+- Search existing issues before opening a new one.
+- Provide a clear title and a concise description.
+- Include steps to reproduce, expected vs actual behavior, and relevant logs or configuration snippets.
+
+## Feature requests
+- Explain the problem and the proposed solution.
+- Keep requests focused and include use-cases and any backward-compatibility considerations.
 
 ## Pull requests
 1. Keep PRs small and focused.
-2. Rebase or squash local commits as appropriate before opening the PR.
+2. Rebase or squash local commits as appropriate before opening the PR. A PR can contain multiple commits, but each commit should be a logical change making up one part of the request.
 3. Include a descriptive title and a short summary of changes.
 4. Link related issues using keywords (e.g., "Fixes #123").
 5. Ensure any tests pass locally before submitting.
@@ -36,15 +45,15 @@ This project contains multiple container images (each in its own immediate sub-d
 
 ### Building all images locally
 - Make the build script executable if needed: `chmod +x ./build-images.sh`
-- Run the build script from the script directory:
+- Run the build script from the `scripts` directory:
   
-  ```
+  ```bash
   cd scripts && ./build-images.sh
   ```
   
   if you want a clean (no-cache) build, pass the `clean` argument to the script
   
-  ```
+  ```bash
   ./build-images.sh clean
   ```
 
@@ -60,13 +69,19 @@ Once you have the local images you can test them with a container runtime.
 1. Create a new immediate sub-directory under the repository root (e.g., `./my-component/`).
 2. Add a `Containerfile` (don't use `Dockerfile`) in that directory.
 3. Add a `VERSION` file with the initial version number for the component
-4. Add the same `BUILD_ARG` and `LABEL` lines as other containers have, adjusting the `source` and `description` values as required.
-5. Create any podman quadlet files needed in the `services` directory.
-6. Update any documentation or the example .env if the new container requires configuration.
+4. Add a build arg and the 4 OCI labels
+```Dockerfile
+  ARG BUILD_VERSION
+
+  LABEL org.opencontainers.image.source=https://github.com/ha-sinkhole/my-component
+  LABEL org.opencontainers.image.description="Description of component."
+  LABEL org.opencontainers.image.licenses=MIT
+  LABEL org.opencontainers.image.version="$BUILD_VERSION"
+  ```
 
 ### Testing images locally
 - Run the image interactively:
-  ```
+  ```bash
   podman run --rm -it <image> /bin/sh
   ```
 - Verify expected behaviour (logs, network, volumes, etc.) before opening a PR.
