@@ -1,6 +1,5 @@
 .:1053 {
-    
-    reload 15m
+    ${CORE_RELOAD}
     log       
     
     health :8080 {
@@ -9,8 +8,8 @@
 
     forward ${LOCAL_DOMAIN} ${LOCAL_UPSTREAM_DNS}
 
-    hosts /data/blocklists.hosts {       
-        reload 1h                       
+    hosts /data/blocklists.hosts {
+        ${CORE_RELOAD}
         fallthrough
     }
     
