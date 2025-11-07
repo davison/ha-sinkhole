@@ -3,6 +3,11 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+readonly script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+readonly project_root=$(dirname "$script_dir")
+source "$script_dir/lib-utils.sh"
+no_root
+
 # ---------------------------------------------------------------------------
 heading "${red}" "🚀 Removing ha-sinkhole"
 # ---------------------------------------------------------------------------
