@@ -1,0 +1,38 @@
+---
+- name: Uninstall ha-sinkhole DNS nodes
+  hosts: dns_nodes
+  become: true
+  roles:
+    - ha_sinkhole_common
+
+  tasks:
+    - name: 🚀 1. Stop and disable services
+      loop:
+        - { name: "vip-manager.service", state: stopped, scope: system }
+        - { name: "dns-node.service", state: stopped, scope: user }
+        - { name: "blocklist-updater.timer", state: stopped, scope: user }
+      loop_control:
+        loop_var: current_service
+      # For EACH item, we call the specific task file
+      ansible.builtin.include_tasks:
+        file: roles/ha_sinkhole_common/tasks/manage_service.yml
+      # Pass variables down into that file, mapped from the loop item
+      vars:
+        service_name: "{{ current_service.name }}"
+        service_state: "{{ current_service.state }}"
+        service_scope: "{{ current_service.scope }}"
+
+    - name: 🚀 2. Remove files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ ha_sinkhole_common_systemd_dir }}/vip-manager.container"
+        - "{{ ha_sinkhole_common_systemd_dir }}/users/dns-node.container"
+        - "{{ ha_sinkhole_common_systemd_dir }}/users/blocklist-updater.container"
+        - "/etc/systemd/user/blocklist-updater.timer"
+        - "/var/lib/ha-sinkhole"
+        - "/var/lib/systemd/linger/{{ ansible_user }}"
+      notify:
+        - Reload systemd (user)
+        - Reload systemd (root)

@@ -1,0 +1,89 @@
+# -------------------------------------------------------------------------
+# Global settings
+# -------------------------------------------------------------------------
+all:
+  vars:
+    # optionally you can set 'latest' in order to install bleeding edge
+    # components. Do NOT override this at group or individual levels
+    install_channel: stable
+
+# -------------------------------------------------------------------------
+# Target node groups
+# -------------------------------------------------------------------------
+dns_nodes:
+  # Common vars for ha_nodes
+  # Any of these can be over-ridden at the host level above.
+  # Commented values are optional and will default to sensible
+  # values inside the container.
+  vars:
+    ansible_user: pi
+    ha_vars:
+      # MUST be set. Do not override per host
+      vip: 192.168.0.53
+      # MUST be set. Do not override per host
+      vrrp_secret: super_duper_s3cr3t
+      # Defaults to BACKUP. If all your nodes are configured to start as BACKUP,
+      # they will elect a MASTER based on priority. To create a preferred master,
+      # override that one host with state=MASTER.
+      #state: BACKUP
+
+      # Defaults to 100. This is the standard keepalived default. You can run all
+      # your nodes with 100, and the one with the highest real IP will win. Or, to
+      # create a preferred master, just launch that one container with a higher
+      # value.
+      #priority: 100
+
+      # Defaults to the auto-detected interface. The command
+      #   ip route get 8.8.8.8 | awk '{print $5}'
+      # is used as a way to find the primary interface. Alternatively, you can set
+      # this to a specific interface name like eth0.
+      #interface: eth0
+
+      # Defaults to the container's hostname (container ID). MUST be unique for
+      # each dns-node, leave commented unless you really need this.
+      #vrrp_router_id: node_name
+
+      # The local (LAN) domain in use. Optionally specify together with a local
+      # upstream server to have hosts on your network resolved correctly.
+      #local_domain: mydomain.local
+
+      # Local server that can resolve your ${LOCAL_DOMAIN} queries - often a
+      # default gateway or router on a home network. If ${LOCAL_DOMAIN} is
+      # specified, requests with bare hostnames will have the local domain
+      # appended to them and then sent to the local upstream.
+      #local_upstream_dns: 192.168.0.1
+
+      # Defaults to publicly available Quad1 and Quad9 servers for upstream
+      # resolution. You may want to use an internal router address or an ISP
+      # provided DNS service here.
+      upstream_dns:
+        - 1.1.1.1
+        - 9.9.9.9
+
+      # Blocklist URLs are the sources of domain lists that should be sink-holed
+      # on the network. The script that fetches them on a timer will de-duplicate
+      # before updating the DNS server with the combined, unique list of domains.
+      #
+      #   blocklist_urls:
+      #     - https://example.com/list1
+      #     - https://test.com/list2
+      #
+      # Some alternatives or additions, use them at your own risk :)
+      #   http://sysctl.org/cameleon/hosts
+      #   https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt
+      #   https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
+      #   https://raw.githubusercontent.com/chadmayfield/pihole-blocklists/master/lists/pi_blocklist_porn_top1m.list
+      #   https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt
+      #
+      blocklist_urls:
+        - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+
+  # Hosts in the ha_nodes group with optional overrides in settings
+  hosts:
+    dns1:
+      ansible_host: 192.168.0.1
+    dns2:
+      ansible_host: 192.168.0.2
+      ha_vars_overrides:
+        state: MASTER
+        priority: 110

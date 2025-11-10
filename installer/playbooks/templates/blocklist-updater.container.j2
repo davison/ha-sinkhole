@@ -5,8 +5,8 @@ RefuseManualStart=yes
 RefuseManualStop=yes
 
 [Container]
-Image=ghcr.io/davison/ha-sinkhole/blocklist-updater:stable
-EnvironmentFile=/etc/ha-sinkhole/sinkhole.env
+Image=ghcr.io/davison/ha-sinkhole/blocklist-updater:{{ install_channel | default('stable') }}
+{% if dns_node.blocklist_urls is defined %}Environment=BLOCKLIST_URLS={{ ha_vars.blocklist_urls | join(' ') }}{% endif %}
 Volume=/var/lib/ha-sinkhole/data:/data:Z
 LogDriver=journald
 # No restart policy - this is a one-shot task

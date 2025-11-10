@@ -1,0 +1,108 @@
+---
+- name: Install ha-sinkhole DNS nodes
+  hosts: dns_nodes
+  become: true
+  roles:
+    - ha_sinkhole_common
+
+  handlers:
+    - name: Restart vip-manager
+      ansible.builtin.systemd:
+        name: vip-manager.service
+        state: restarted
+        scope: system
+
+    - name: Restart dns-node
+      become: false
+      ansible.builtin.systemd:
+        name: dns-node.service
+        state: restarted
+        scope: user
+
+    - name: Restart blocklist-updater timer
+      become: false
+      ansible.builtin.systemd:
+        name: blocklist-updater.timer
+        state: restarted
+        scope: user
+
+  tasks:
+    - name: ⚙️  1. Check environment and dependencies
+      block:
+        - name: ⚙️  Ensure podman is installed
+          ansible.builtin.package:
+            name: podman
+            state: present
+
+        - name: ⚙️  Enable user lingering for {{ ansible_user }}
+          ansible.builtin.command: "loginctl enable-linger {{ ansible_user }}"
+          args:
+            creates: "/var/lib/systemd/linger/{{ ansible_user }}"
+
+        - name: ⚙️  Create data dir
+          ansible.builtin.file:
+            path: '{{ ha_sinkhole_common_data_dir }}'
+            state: directory
+            owner: '{{ ansible_user }}'
+            mode: '0755'
+
+    - name: 🎯  Merge host-specific HA variables
+      ansible.builtin.set_fact:
+        # This merges the base ha_vars with the overrides.
+        # The | default({}) prevents errors if a host has no overrides.
+        ha_vars: "{{ ha_vars | combine(ha_vars_overrides | default({})) }}"
+
+    - name: 📦  2. Install systemd units
+      block:
+        - name: Template vip-manager container file
+          ansible.builtin.template:
+            src: "vip-manager.container.j2"
+            dest: "{{ ha_sinkhole_common_systemd_dir }}/vip-manager.container"
+            mode: '0644'
+          notify:
+            - Reload systemd (root)
+            - Restart vip-manager
+
+        - name: Copy user systemd timer file
+          ansible.builtin.copy:
+            src: "blocklist-updater.timer"
+            dest: "/etc/systemd/user/blocklist-updater.timer"
+            mode: '0644'
+          notify:
+            - Reload systemd (user)
+            - Restart blocklist-updater timer
+
+        - name: Template dns-node container file
+          ansible.builtin.template:
+            src: "dns-node.container.j2"
+            dest: "{{ ha_sinkhole_common_systemd_dir }}/users/dns-node.container"
+            mode: '0644'
+          notify:
+            - Reload systemd (user)
+            - Restart dns-node
+
+        - name: Template blocklist-updater container file
+          ansible.builtin.template:
+            src: "blocklist-updater.container.j2"
+            dest: "{{ ha_sinkhole_common_systemd_dir }}/users/blocklist-updater.container"
+            mode: '0644'
+          notify: Reload systemd (user)
+
+        - name: 🔄 Flush handlers to reload systemd
+          ansible.builtin.meta: flush_handlers
+
+    - name: 🚀 Enable and start services
+      loop:
+        - { name: "vip-manager.service", state: started, scope: system }
+        - { name: "dns-node.service", state: started, scope: user }
+        - { name: "blocklist-updater.timer", state: started, scope: user }
+      loop_control:
+        loop_var: current_service
+      # For EACH item, we call the specific task file
+      ansible.builtin.include_tasks:
+        file: roles/ha_sinkhole_common/tasks/manage_service.yml
+      # Pass variables down into that file, mapped from the loop item
+      vars:
+        service_name: "{{ current_service.name }}"
+        service_state: "{{ current_service.state }}"
+        service_scope: "{{ current_service.scope }}"

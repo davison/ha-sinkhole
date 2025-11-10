@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: MIT-0
+---
+# 1. Manages SYSTEM services, which REQUIRE root access (become: true)
+- name: "Managing system service: {{ service_name + ':' + service_state }}"
+  ansible.builtin.systemd:
+    name: "{{ service_name }}"
+    state: "{{ service_state }}"
+    scope: system
+  # Explicitly require privilege escalation
+  become: true
+  when: service_scope == 'system'
+  # If the state is 'stopped', ignore errors (e.g., "service not found").
+  # If the state is 'started', do NOT ignore errors.
+  ignore_errors: "{{ service_state == 'stopped' }}"
+
+# 2. Manages USER services, which REQUIRE no root access (become: false)
+- name: "Managing user service: {{ service_name + ':' + service_state }}"
+  ansible.builtin.systemd:
+    name: "{{ service_name }}"
+    state: "{{ service_state }}"
+    scope: user
+
+  # Explicitly forbid privilege escalation
+  become: false
+  when: service_scope == 'user'
+  # If the state is 'stopped', ignore errors (e.g., "service not found").
+  # If the state is 'started', do NOT ignore errors.
+  ignore_errors: "{{ service_state == 'stopped' }}"

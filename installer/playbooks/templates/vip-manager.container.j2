@@ -1,0 +1,22 @@
+[Unit]
+Description=HA Sinkhole VIP Manager
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+Image=ghcr.io/davison/ha-sinkhole/vip-manager:{{ install_channel | default('stable') }}
+Environment=VIRTUAL_IP={{ ha_vars.vip }}
+Environment=VRRP_SECRET={{ ha_vars.vrrp_secret }}
+Environment=NODE_STATE={{ ha_vars.state | default('BACKUP') }}
+Environment=NODE_PRIORITY={{ ha_vars.priority | default('100') }}
+{% if ha_vars.interface is defined %}Environment=INTERFACE={{ ha_vars.interface }}{% endif %}
+{% if ha_vars.vrrp_router_id is defined %}Environment=VRRP_ROUTER_ID={{ ha_vars.vrrp_router_id }}{% endif %}
+Network=host
+AddCapability=NET_ADMIN NET_RAW
+LogDriver=journald
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
