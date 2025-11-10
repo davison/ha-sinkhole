@@ -1,0 +1,22 @@
+FROM alpine:3
+
+ARG BUILD_VERSION
+
+LABEL org.opencontainers.image.source=https://github.com/ha-sinkhole/installer
+LABEL org.opencontainers.image.description="Installs, modifies or uninstalls the various components of ha-sinkhole to target machines."
+LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.version="$BUILD_VERSION"
+
+ENV USER=ansible
+ENV SSH_AUTH_SOCK=/tmp/ssh-agent.sock
+RUN apk add --no-cache ansible-core openssh-client-default bash
+RUN addgroup $USER && adduser --disabled-password --home "/home/$USER" --ingroup "$USER" $USER
+
+USER $USER
+WORKDIR /home/$USER
+RUN mkdir -p /home/$USER/.ssh && chmod 700 /home/$USER/.ssh
+COPY --chown=$USER:$USER playbooks playbooks
+COPY --chown=$USER:$USER ansible.cfg .
+
+# Default entrypoint
+ENTRYPOINT [ "ansible-playbook" ]

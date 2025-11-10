@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MIT-0
+---
+- name: Reload systemd (root)
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Reload systemd (user)
+  become: false
+  ansible.builtin.systemd:
+    scope: user
+    daemon_reload: true
