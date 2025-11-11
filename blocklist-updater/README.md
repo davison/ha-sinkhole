@@ -1,10 +1,6 @@
 # Blocklist Updater
 
-The `blocklist-updater` container is responsible for periodically fetching and processing blocklists to create the `blocklists.hosts` file. This file is essential for the `dns-node` container, which reads it to determine which domains to block.
-
-## Overview
-
-This container runs a Python script that updates the blocklists (daily be default). It is designed to be run as a systemd service on a systemd timer although it will run whenever the [dns-node](../dns-node/) container starts too as that relies on its output.
+The `blocklist-updater` container is responsible for periodically fetching and processing blocklists to create the `blocklists.hosts` file. This file is essential for the `dns-node` container, which reads it to determine which domains to block. This container runs a Python script that updates the blocklists (daily be default). It is designed to be run as a rootless systemd service via a systemd timer, although it will also run whenever the [dns-node](../dns-node/README.md) container (re)starts too as that relies on its output.
 
 ## Usage
 
@@ -17,27 +13,28 @@ This container runs a Python script that updates the blocklists (daily be defaul
    systemctl --user list-timers
    ```
 
-The container must share a volume with the `dns-node` container to ensure that the `blocklists.hosts` file is accessible. This volume is mounted from `/var/lib/ha-sinkhole/data` on the host.
+The container must share a volume with the `dns-node` container to ensure that the `blocklists.hosts` file is accessible. This volume is mounted from `/var/lib/ha-sinkhole/data` on the host and that directory is created by the installer and set with ownership of the non-root user (`ansible_user` in the inventory file).
 
 ## Configuration
 
-The `blocklist-updater` shares a config file with other Sinkhole components located at `/etc/ha-sinkhole/sinkhole.env`. If you used the installer script it would have created this from a well commented template version highlighting the options available to manage sinkhole nodes.
+The `blocklist-updater` is only interested in the `blocklist_urls` config element. This is a list of one or more URLs that point to valid format blocklists. The example inventory file lists several options and more may be available. Files in "hosts" file format, plain domain lists or AdBlock Pro list format should all work. By default, a single URL is configured. The service will de-duplicate and sort the final list before writing it to the destination directory ready for the [dns-node](../dns-node/README.md) to consume.
 
-For this container, the following configuration values can be specified:
+```yaml
+    dns_nodes:
+      vars:
+        ha_vars:
+          blocklist_urls:
+            - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+```
 
-*  `BLOCKLIST_URLS=https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts`
-   Blocklist URLs are the sources of domain lists that should be sink-holed on the network. The script that fetches them on a timer will de-duplicate before updating the DNS server with the combined, unique list of domains. The default value is Steven Black's list, here are some alternatives and additions:
-      - http://sysctl.org/cameleon/hosts
-      - https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt
-      - https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
-      - https://raw.githubusercontent.com/chadmayfield/pihole-blocklists/master/lists/pi_blocklist_porn_top1m.list
-      - https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt
-  
-   More than one URL in the list should be space separated without quotes.
-   
-   ```
-   BLOCKLIST_URLS=https://example.com/list1 https://test.com/list2
-   ```
+Others that you may wish to add to or replace it with are:
+```yaml
+   - http://sysctl.org/cameleon/hosts
+   - https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt
+   - https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
+   - https://raw.githubusercontent.com/chadmayfield/pihole-blocklists/master/lists/pi_blocklist_porn_top1m.list
+   - https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt
+```     
 
 ## Logging
 

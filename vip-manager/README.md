@@ -1,50 +1,87 @@
 # VIP Manager
 
-The `vip-manager` component is responsible for managing the Virtual IP (VIP) address in the HA Sinkhole application. It uses Keepalived to ensure high availability of the DNS service by managing the VIP and performing master node elections among the cluster members.
+The `vip-manager` component is responsible for managing the Virtual IP (VIP) address in the HA Sinkhole application. It uses [Keepalived](httpos://keepalived.org) to ensure high availability of the DNS service by managing the VIP and performing master node elections among the cluster members. The VIP should be an address on the same network as the hosts and protected from use by other machines (i.e. outside of a DHCP range). When the `vip-manager` chooses a primary/master node based on configuration and current service status' of the [dns-nodes](../dns-node/) it will add the VIP as an alias to the same NIC as the machine uses for its default route and then aggressively ARP so that routing equipment updates to send traffic for that IP address to the new primary node.
 
-## Overview
+`vip-manager` is designed to run as a systemd service, ensuring that it starts automatically on boot and restarts in case of failure. It requires `root` privileges to operate and cannot be run as a `podman` rootless container due to the privileges required to manage network interfaces.
 
-The `vip-manager` container is built on top of a base image that includes Keepalived. It is designed to run as a systemd service, ensuring that it starts automatically on boot and restarts in case of failure. It requires `root` privileges to operate and cannot be run as a `podman` rootless container.
+By default, each Sinkhole DNS node uses identical configuration for the `vip-manager` which means that they all start in `BACKUP` state and with the same priority level of 100. It's fine to leave it like this on all nodes if you have no preference which machine is the primary node, however you can increase the priority of a node and optionally start it up as `MASTER` if you have a preferred primary node (for example with better hardware). See the [configuration](#configuration) section below for details.
 
-By default, each Sinkhole DNS node uses identical configuration for the `vip-manager` which means that they all start in `BACKUP` state and with the same priority level of 100. It's fine to leave it like this on all nodes if you have no preference which machine is the primary node, however you can increase the priority of a node and optionally start it up as `MASTER` if you have a preferred primary node (for example with better hardware). See the next section for configuration details.
+An additional job performed by `vip-manager` is to forward traffic from the standard DNS port of 53 to an unprivileged port of 1053 on whichever machine has the VIP address. This is because the `dns-node` container is designed to run rootless (using `podman`) and so listens on that unprivileged port (1053) for the DNS requests. In order for clients to be able to use the default DNS port (53) netfilter rules via `nftables` are added to control the port mapping. These rules rewrite all packets arriving on the `$VIRTUAL_IP` address at port 53 to a `dnat` of 1053. This should be significantly more secure than running the DNS server as root. The `nftables` configuration looks like this (the VIP address is templated and would be replaced with the real VIP):
 
-The `dns-node` container is designed to run rootless (using `podman`) and so listens on an unprivileged port (1053) for the DNS requests. In order for clients to be able to use the default DNS port (53) the `vip-manager` additionally creates netfilter rules by using the `nftables` software. These rules rewrite all packets arriving on the `$VIRTUAL_IP` address at port 53 to a `dnat` of 1053. This should be significantly more secure than running the DNS server as root.
+```sh
+add table ip dns_port_forward
+add chain ip dns_port_forward dns_dnat { type nat hook prerouting priority dstnat; }
+add rule ip dns_port_forward dns_dnat ip daddr "$VIRTUAL_IP" tcp dport 53 dnat to :1053
+add rule ip dns_port_forward dns_dnat ip daddr "$VIRTUAL_IP" udp dport 53 dnat to :1053
+```
 
-## Configuration
-
-The `vip-manager` shares a config file with other Sinkhole components located at `/etc/ha-sinkhole/sinkhole.env`. If you used the installer script it would have created this from a well commented template version highlighting the options available to manage sinkhole nodes.
-
-For VIP handling in this container, the following configuration values can be specified:
-
-*   `VIRTUAL_IP=10.0.0.53`
-    This is the shared virtual IP address that will float between your nodes. It must be the SAME on all nodes; ensure this is reserved in DHCP or not otherwise in use. There is no default value for this item, it must exist in your config file.
-
-*   `VRRP_SECRET=s3cr3t`
-    Secret used within the cluster to manage communication. It must be the SAME on all cluster nodes. There is no default value for this item, it must exist in your config file.
-
-*   `NODE_STATE=BACKUP`
-    Defaults to BACKUP. All your nodes will start as BACKUP, and they will elect a MASTER based on priority. To create a preferred master, launch that one container with `NODE_STATE=MASTER`.
-
-*   `NODE_PRIORITY=100`
-    Defaults to 100. This is the standard keepalived default. You can run all your nodes with 100, and the one with the highest real IP will win. Or, to create a hierarchy of preferred master nodes, set relatively higher values.
-
-*   `INTERFACE=eth0`
-    Defaults to the auto-detected interface. The command `ip route get 8.8.8.8 | awk '{print $5}'` is used as a way to find the primary interface. Alternatively, you can set this to a specific interface name like `eth0`.
-
-*   `VRRP_ROUTER_ID=node1`
-    Defaults to the container's hostname (or container ID). Must be unique for each container instance.
-
-## Health Checks
-
-The `healthcheck.sh` script is included to perform regular health checks on the `dns-node` container's `CoreDNS` service. This ensures that the service is running correctly, if it fails then `keepalived` will move the VIP to another working instance.
+The running container has a `healthcheck.sh` script, included to perform regular health checks on the `dns-node` container's `CoreDNS` service. This ensures that the service is running correctly, if it fails then `keepalived` will move the VIP to another working instance even in the event that the `dns-node` container continues to run.
 
 ## Usage
 
-To run the `vip-manager` container, ensure that the necessary environment variables are set in the shared configuration file (`/etc/ha-sinkhole/sinkhole.env`). The service can be managed using systemd commands:
+The service can be managed using systemd commands:
 
-- Start the service: `systemctl start vip-manager`
-- Stop the service: `systemctl stop vip-manager`
-- Check the status: `systemctl status vip-manager`
+```bash
+systemctl start vip-manager
+systemctl stop vip-manager
+systemctl status vip-manager
+```
+
+If the service is stopped, the VIP will move to another machine in the cluster if any remain.
+
+## Configuration
+
+For `vip-manager`, the following configuration values from the inventory config file are relevant:
+
+*   `vip` is the shared virtual IP address that will float between your nodes. It must be the SAME on all nodes; ensure this is reserved in DHCP or not otherwise in use. There is no default value for this item, it must exist in your config file.
+    ```yaml
+    dns_nodes:
+      vars:
+        ha_vars:
+          vip: 192.168.0.53
+    ```
+
+*   `vrrp_secret` is the secret used within the cluster to manage communication. It must be the SAME on all cluster nodes. There is no default value for this item, it must exist in your config file.
+    ```yaml
+    dns_nodes:
+      vars:
+        ha_vars:
+          vrrsp_secret: wh0_goes_th3r3
+    ```
+
+*   `state` specifies the node state that machines will try to start in. It defaults to `BACKUP`. If all your nodes will start as `BACKUP`, and they will elect a `MASTER` based on a combination of `priority`, IP address and status of the `dns-node` service, though these details are mnostly irrelevant. To create a preferred master, launch that one container with `state:MASTER` and a higher priority as shown in the overridden `ha_vars`. You probably want to do this if you have one machine with better hardware than the others that should always be preferred as a primary service provider.
+    ```yaml
+    dns_nodes:
+      vars:
+        ha_vars:
+          # at the group level, only BACKUP really makes sense. Override as 
+          # shown to make a single machine the preferred MASTER
+          state: BACKUP 
+    hosts:
+      dns2:
+        ha_vars_overrides:
+          state: MASTER
+          priority: 110
+    ```
+
+*   `priority` defaults to 100. This is the standard keepalived default. You can run all your nodes with 100, and the one with the highest real IP will win. Or, to create a hierarchy of preferred master nodes, set relatively higher values.
+
+*   `interface` should rarely need to be configured. It defaults to the auto-detected interface, discovered using the command `ip route get 8.8.8.8 | awk '{print $5}'`. If for some reason this does not return the correct interface to use for the incoming DNS requests, you can set this to a specific interface name like `eth0`. It probably *only* makes sense to set this at a specific machine (override) level unless all the machines in your group are identical and have the same issue.
+    ```yaml
+    hosts:
+      dns2:
+        ha_vars_overrides:
+          interface: eth0
+    ```
+
+*   `vrrp_router_id` should also rarely need to be configured. It defaults to the container's hostname (or container ID). It __must__ be unique for each container instance and so if your containers are generating identical names that are being used as a router ID, you can override that behaviour here. This setting __only__ makes sense at an individual machine level.
+    ```yaml
+    hosts:
+      dns2:
+        ha_vars_overrides:
+          vrrp_router_id: dns2
+    ```
+
 
 ## Logging
 
@@ -53,11 +90,3 @@ The `vip-manager` service uses journal logging, which can be accessed using the 
 ```bash
 journalctl -u vip-manager
 ```
-
-## Privileges
-
-The `vip-manager` container requires root privileges and additional capabilities to manage network interfaces, kernel netfilter tables and IP addresses. These are defined in the systemd unit file.
-
-## Documentation
-
-For more detailed information on the configuration options and usage, refer to the `keepalived` [documentation](httpos://keepalived.org).
