@@ -28,35 +28,26 @@ jobs:
 
       - name: Use paths-filter action
         id: filter
-        uses: dorny/paths-filter@v3
+        uses: petermetz/paths-filter@5ee2f5d4cf5d7bdd998a314a42da307e2ae1639d
         with:
+          predicate-quantifier: 'every'
           # Define a filter for each image.
           # The 'outputs.changes' will contain an array of the keys
           # for the filters that matched.
           filters: |
             dns-node:
-              pattern:
-              - 'dns-node/**'
-              exclude:
-                - 'dns-node/README.md'
+                - 'dns-node/**'
+                - '!**/*.md'
             vip-manager:
-              pattern:
-              - 'vip-manager/**'
-              exclude:
-                - 'vip-manager/README.md'
+                - 'vip-manager/**'
+                - '!**/*.md'
             blocklist-updater:
-              pattern:
-              - 'blocklist-updater/**'
-              exclude:
-                - 'blocklist-updater/README.md'
+                - 'blocklist-updater/**'
+                - '!**/*.md'
             installer:
-              pattern:
-              - 'installer/**'
-              exclude:
-                - 'installer/README.md'
-          # Add more services here as needed
-          # new-service:
-          #   - 'new-service/**'
+                - 'installer/**'
+                - '!**/*.md'
+    
 
   ### --------------------------------------------------------------------
   ###  JOB 2: Build and Push
