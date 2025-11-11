@@ -35,18 +35,22 @@ jobs:
           # for the filters that matched.
           filters: |
             dns-node:
+              pattern:
               - 'dns-node/**'
               exclude:
                 - 'dns-node/README.md'
             vip-manager:
+              pattern:
               - 'vip-manager/**'
               exclude:
                 - 'vip-manager/README.md'
             blocklist-updater:
+              pattern:
               - 'blocklist-updater/**'
               exclude:
                 - 'blocklist-updater/README.md'
             installer:
+              pattern:
               - 'installer/**'
               exclude:
                 - 'installer/README.md'
