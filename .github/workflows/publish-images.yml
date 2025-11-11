@@ -36,10 +36,20 @@ jobs:
           filters: |
             dns-node:
               - 'dns-node/**'
+              exclude:
+                - 'dns-node/README.md'
             vip-manager:
               - 'vip-manager/**'
+              exclude:
+                - 'vip-manager/README.md'
             blocklist-updater:
               - 'blocklist-updater/**'
+              exclude:
+                - 'blocklist-updater/README.md'
+            installer:
+              - 'installer/**'
+              exclude:
+                - 'installer/README.md'
           # Add more services here as needed
           # new-service:
           #   - 'new-service/**'

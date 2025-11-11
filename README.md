@@ -1,47 +1,98 @@
-# HA Sinkhole
+# HA Sinkhole <!-- omit from toc -->
 
-Inspired by the fantastic [pi-hole](https://github.com/pi-hole/pi-hole) project, big shout out to the creators and contributors there!
+#### Contents <!-- omit from toc -->
+- [Intro](#intro)
+- [Quick Start Guide](#quick-start-guide)
+  - [Pre-flight checklist](#pre-flight-checklist)
+  - [Config setup](#config-setup)
+  - [Install as planned](#install-as-planned)
+- [Customising Deployments](#customising-deployments)
+  - [DNS Sinkhole Nodes](#dns-sinkhole-nodes)
+  - [Log Aggregators](#log-aggregators)
+  - [Visualisation](#visualisation)
+
+## Intro
+`ha-sinkhole` is inspired by the fantastic [pi-hole](https://github.com/pi-hole/pi-hole) project, big shout out to the creators and contributors there!
 
 I've used pi-hole for years and couldn't live without that functionality on my network, but it's not easy to make it highly available and I really wanted that. There are several guides available for making pi-hole HA, but they're fragile, bolt-on solutions which are unsupported by the pi-hole project.
 
 I created `ha-sinkhole` to solve specifically that problem. It addresses that single concern and does not, by design, offer many of the existing pi-hole features (notably DHCP). It also currently comes with no visualisation features or web interface, but that will change once the core HA sinkhole feature is working and stable.
 
-You can deploy one or more `ha-sinkhole` DNS nodes that will share a virtual IP (VIP) address on your network. The nodes will take care of managing the IP address and if a node fails or is taken down during maintenance, one of the others will assume the VIP. All DNS clients are given the VIP as their DNS server and therefore as long as at least one of your nodes is alive, your DNS and sinkhole service will be operational. Follow the quick start steps on each machine you want to use as a node. One machine will work, two is the minimum for high availability and more can be added at any time if you want additional resilience.
+You can deploy one or more `ha-sinkhole` DNS nodes that will share a virtual IP (VIP) address on your network. The nodes will take care of managing the IP address and if a node fails or is taken down during maintenance, one of the others will assume the VIP automatically. You configure all your DNS clients with the VIP as their DNS server, ideally via DHCP, and therefore as long as at least one of your nodes is alive, your DNS and sinkhole service will be operational. Follow the quick start steps to get up and running. One machine will work, two is the minimum for high availability and more ca be added at any time if you want additional resilience.
 
-Whether you're installing on a raspberry pi, a bare metal server, a local VM, or on cloud instances, it should work. As `ha-sinkhole` uses containers, deploying inside a container is unlikely to succeed.
+Whether you're installing on a raspberry pi, a bare metal server, a local VM, or on cloud instances, it should work if your machines meet the pre-flight checklist. As `ha-sinkhole` uses containers, deploying inside a container is unlikely to succeed. The installer is a flexible, remote install service that enables you to define your layout of nodes (for DNS, logging and visualisation services) including mixing local DNS with cloud environments for logging and observability.
 
 ## Quick Start Guide
 
-1. Ensure your host machine has an up to date `linux` distro.
-2. You will need a container management application installed. [podman](https://podman.io/) is strongly recommended, [docker](https://www.docker.com/) should also just work. Install using your distro's packaging tool.
-3. Run the `ha-sinkhole` installer and configure the required variables of `VIRTUAL_IP` and `VRRP_SECRET`. All the other options can be skipped and left at default values for now.
+`ha-sinkhole` expects that you're running the installer from a "controller" machine (typically your PC) and targeting remote nodes for installation (such as VMs, Pi's or cloud instances). You can target the same machine you run the installer from though.
 
-    ```bash
-    git clone https://github.com/davison/ha-sinkhole.git && cd ha-sinkhole/scripts
-    ./install.sh
-    ```
-    `VIRTUAL_IP` and `VRRP_SECRET` must be the *same* on every node you want to cluster.
-4. Repeat steps 1 - 3 on all your additional nodes.
-5. Configure your DNS clients with the `VIRTUAL_IP` address.
-6. Enjoy ad-free browsing with highly available DNS!
+### Pre-flight checklist
+
+1. Your controller machine has an up to date `linux` distro or MacOS (it may work with Windows but frankly I've no idea and don't really care).
+2. You have a container management application installed on that same machine. [podman](https://podman.io/) is strongly recommended, [docker](https://www.docker.com/) should also just work. Install it using your distro's packaging tool.
+3. You have added your SSH key to a local `ssh-agent` with `ssh-add` on the controller node and the `SSH_AUTH_SOCK` environment variable is set (check by running `env | grep SSH`)
+4. You have one or more target nodes to deploy `ha-sinkhole` components to and these also have suitable and modern operating systems (Linux, RasPi, MacOS)
+5. You can SSH to each of your target nodes and your user can gain `root` with `sudo`.
+
+The installation makes use of passwordless SSH and being able to become root on the target nodes in order to perform any install or uninstall task, so you will need to set these up first if you don't already have them working.
+
+### Config setup
+
+First, on your controller node, create a config file named (by convention but it doesn't matter) `inventory.yaml`. You can create it anywhere for now. In it, you need to specify, at minimum, one target node - ideally more than one if you actually want HA! - the VIP address and a secret. The secret is simply used to manage cluster membership for the VIP but if you're on an open or insecure network, make it 15-20 characters. To make the service actually useful, you want to add upstream DNS server(s) and at least one block list.
+   
+Below is a minimal config to get 2 remote nodes installed (accessible at `192.168.0.1` and `192.168.0.2` and sharing a VIP of `192.168.0.53`)
+
+   ```yaml
+      # DNS node group config
+      dns_nodes:
+        vars:
+          ansible_user: pi # <-- the user you can SSH to the hosts as
+          ha_vars:
+            vip: 192.168.0.53 # <-- the floating IP shared among the nodes
+            vrrp_secret: super_duper_s3cr3t
+            
+            # a list of DNS servers to send queries to that aren't blocked
+            upstream_dns: 
+              - 1.1.1.1
+              - 9.9.9.9
+            
+            # a list of URLs containing block lists of domains
+            blocklist_urls: 
+              - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+        
+        # members of the dns_nodes group
+        hosts:
+          dns1:
+            ansible_host: 192.168.0.1
+          dns2:
+            ansible_host: 192.168.0.2
+   ```
+
+### Install as planned
+
+Once you have your inventory (config) you can run the [installer](./installer/README.md) container via the shell script wrapper. This should collect the location of your inventory file and a "command" (use `install`) to run through the installation on both your nodes in parallel.
+
+```bash
+curl github.com/davison/ha-sinkhole/blob/main/install.sh | bash
+```
+
+Configure your DNS clients with the `vip` address, make sure this address can't be obtained by anything else on your network (exclude from any DHCP range).
+
+Profit with ad-free browsing and highly available DNS.
 
 ## Customising Deployments
 
 ### DNS Sinkhole Nodes
 
-Sinkhole nodes are made up from 3 containers, each performing a specific function. All containers are configured through the environment (typically a single `.env` file that is local to the node). This can be ingested via `systemd` and `podman quadlets` or with `docker compose` files.
+Each DNS sinkhole node is made up from 3 containers, each performing a specific function. All containers are configured through the installation config file that you created as part of the Quick Start guide above. Or if you haven't yet, you may want to create one from the [example inventory file](./installer/inventory.example.yaml) instead.
 
-The installer script will install `stable` versions of containers and components. If you want the bleeding edge, run the installer with `latest` as an argument:
+The installer will install `stable` versions of containers and components by default. If you want the bleeding edge, add or change the `install_channel` to `latest` in your inventory file.
 
-```bash
-cd ha-sinkhole/scripts && ./install.sh latest
-```
+The three containers making up a DNS sinkhole node are: 
 
-1. [dns-node](./dns-node/) is the DNS resolver and is built on top of [coredns](https://coredns.io/), a very fast, reliable and highly configurable resolver. 
-2. [blocklist-updater](./blocklist-updater/) is a cron like container that periodically updates the sources for the domains to block.
-3. [vip-manager](./vip-manager/) based on [keepalived](https://www.keepalived.org/) is the component that manages the VIP and elections of master nodes among the cluster members.
-
-The [example .env file](./services/sinkhole.example.env) documents all of the available configuration items for the node. It's shared among the 3 containers.
+1. [dns-node](./dns-node/README.md) is the DNS resolver and is built on top of [coredns](https://coredns.io/), a very fast, reliable and highly configurable resolver. The main job of `dns-node` is to consume the blocklist file and return the sinkhole address `0.0.0.0` for any domain in its list. If the domain being queried is not in the list, it will pass the query to one of potentially several upstream resolvers instead and return any answer they give. The documentation page for this container covers all of the available configuration options in detail.
+2. [blocklist-updater](./blocklist-updater/README.md) is a cron like container that periodically updates the sources for the domains to block. The container does not run unless invoked by its timer component, which will happen daily. Once it has re-generated the blocklist file based on your `blocklist_urls` in config, the container will exit. `dns-node` will reload the blocklist file when it sees that it has changed. The blocklist timer and container run rootless if managed by `podman`
+3. [vip-manager](./vip-manager/README.md) based on [keepalived](https://www.keepalived.org/) is the component that manages the VIP and elections of master nodes among the cluster members. Because of the system and network permissions it requires, this container runs with root privileges. The documentation page for this container covers all of the available configuration options in detail.
 
 ### Log Aggregators
 
@@ -54,12 +105,3 @@ Features will enable the logs and metadata to be stored/parsed for visualisation
 (not yet implemented)
 
 Graphs and metrics of blocked/allowed queries, similar to pi-hole graphs
-
-## Contents <!-- omit from toc -->
-- [HA Sinkhole](#ha-sinkhole)
-  - [Quick Start Guide](#quick-start-guide)
-  - [Customising Deployments](#customising-deployments)
-    - [DNS Sinkhole Nodes](#dns-sinkhole-nodes)
-    - [Log Aggregators](#log-aggregators)
-    - [Visualisation](#visualisation)
-
