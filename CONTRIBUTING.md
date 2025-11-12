@@ -42,11 +42,13 @@ Take a look through any open issues to see what things are a priority, and what 
 ## Coding style
 - Follow the existing project style and patterns.
 - Keep code readable and well-documented.
-- Add or update docstrings and README sections when public interfaces change.
+- Follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
 - Follow good [commit hygeine](https://www.pullchecklist.com/posts/git-commit-best-practices)
 
 ## Developing and building the container images
 This project contains multiple container images (each in its own immediate sub-directory) and provides a `Makefile` to discover and build them. You'll need your distro's version of build tools installed to be able to run `make` and get local builds of the images for faster dev/test cycles.
+
+Each build image has its own `VERSION` file with the current semantic version number of the image in it. This file is updated automatically by github action workflows based on the commit message and the files that have been modified in the commit. You should rarely need to change this manually but it relies on adherance to the [coding rules](#coding-style) in order to work.
 
 ### Building all images locally
 From the project root..
@@ -62,9 +64,9 @@ From the project root..
   ```
 
 The Makefile will:
-  - detect the container runtime (podman or docker),
-  - find directories from the project root that host a  `Containerfile`
-  - build images and apply a tag name of `local`,
+  - detect the container runtime (podman or docker).
+  - find directories from the project root that host a  `Containerfile`.
+  - build images and apply a tag name of `local`, ignoring the `VERSION` file completely.
   - print a summary.
 
 Once you have the local images you can test them with a container runtime.
