@@ -105,6 +105,7 @@ def generate_hosts_file(output_path: str):
         
         # 2. Atomically rename the temp file to the final output path
         os.rename(temp_file_path, output_path)
+        os.chmod(output_path, 0o664)
         print("-> Complete.")
 
     except Exception as e:
