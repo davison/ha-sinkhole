@@ -11,7 +11,6 @@ Image=ghcr.io/davison/ha-sinkhole/dns-node:{{ install_channel | default('stable'
 Environment=LOCAL_DOMAIN={{ ha_vars.local_domain | default('') }}
 Environment=LOCAL_UPSTREAM_DNS={{ ha_vars.local_upstream_dns | default('') }}
 Environment=UPSTREAM_DNS={{ ha_vars.upstream_dns | join(' ') }}
-Environment=BLOCKLIST_URLS={{ ha_vars.blocklist_urls | join(' ') }}
 Volume=/var/lib/ha-sinkhole/data:/data:Z
 LogDriver=journald
 PublishPort=1053:1053/udp
