@@ -13,3 +13,4 @@ COPY process_lists.py /usr/local/bin/process_lists.py
 RUN chmod +x /usr/local/bin/process_lists.py
 
 ENTRYPOINT ["/usr/local/bin/process_lists.py"]
+CMD ["/data/blocklists.hosts"]
