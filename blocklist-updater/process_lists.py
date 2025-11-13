@@ -3,6 +3,7 @@
 import datetime
 import re
 import os
+import sys
 import urllib.request
 import tempfile
 from typing import List, Set
@@ -11,11 +12,12 @@ from typing import List, Set
 block_ip = "0.0.0.0"
 
 # Regular expression compiled for faster matching.
-# It handles both 'IP domain' (hosts file format) and 'domain' (plain list format).
+# This regex is now used as a fallback for hosts-file format and plain domain lists.
 domain_regex = re.compile(
     # Optional leading IP address (e.g., 0.0.0.0 or 127.0.0.1 followed by space)
     r'^(?:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\s+)?'
     # Capture Group 1: The actual domain name (letters, numbers, hyphens, and dots)
+    # This must not be an IP address
     r'([a-zA-Z0-9\-\.]+)'
     # Non-capturing group: Trailing spaces, slashes, or comments (# or !)
     r'(?:[\s\/\#\!]?.*)?$'
@@ -32,45 +34,85 @@ def fetch_and_parse_list(url: str):
     """
     Fetches a blocklist from a URL, cleans each line, extracts the domain,
     and adds the domain to the global unique_domains set.
+    
+    This function handles:
+    1. Plain domain lists (one domain per line)
+    2. Hosts file format (e.g., "0.0.0.0 example.com")
+    3. AdBlockPlus format (e.g., "||example.com^")
     """
     print(f"-> Processing list: {url}")
     try:
-        # Create a Request object to set the User-Agent so the default Python agent is 
-        # not treated badly by the server
+        # Create a Request object to set the User-Agent
         headers = {'User-Agent': user_agent}
         request = urllib.request.Request(url, headers=headers)
 
-        # Use the request object with urlopen
         with urllib.request.urlopen(request, timeout=10) as response:
             for line_bytes in response:
                 # Decode line and strip leading/trailing whitespace
                 line = line_bytes.decode('utf-8', errors='ignore').strip()
 
-                # Ignore comments and empty lines
-                if not line or line.startswith(('#', '!', '/')):
+                # --- Start: Multi-format Parsing Logic ---
+
+                # 1. Ignore comments, empty lines, ABP headers, and cosmetic filters
+                if (not line or 
+                    line.startswith(('#', '!', '/')) or  # Comments or paths
+                    line.startswith('[') or               # ABP Headers (e.g., [Adblock Plus 2.0])
+                    line.startswith('@@') or              # ABP Exception/Allow rules
+                    '##' in line or                       # ABP Element hiding rules
+                    '#@#' in line):                     # ABP Element hiding exception rules
+                    continue
+                
+                domain = ""
+
+                # 2. Handle AdBlockPlus Block rules (e.g., "||example.com^")
+                if line.startswith('||'):
+                    # Extract the domain part after ||
+                    domain_part = line[2:]
+                    
+                    # Find the end of the domain (first occurrence of ^, /, $, or :)
+                    separator_pos = -1
+                    for sep in ['^', '/', '$', ':']:
+                        pos = domain_part.find(sep)
+                        if pos != -1:
+                            if separator_pos == -1 or pos < separator_pos:
+                                separator_pos = pos
+                    
+                    if separator_pos != -1:
+                        domain = domain_part[:separator_pos]
+                    else:
+                        domain = domain_part # No separator, take the whole part
+                
+                # 3. Handle hosts file / plain domain list (fallback)
+                else:
+                    match = domain_regex.match(line)
+                    if match:
+                        domain = match.group(1)
+                    else:
+                        continue # No match, skip this line
+
+                # --- End: Multi-format Parsing Logic ---
+
+                # 4. Clean and validate the extracted domain
+                domain = domain.lower().strip().strip('.')
+
+                # 5. Add stricter validation
+                if not domain: # Skip if domain was empty
                     continue
 
-                match = domain_regex.match(line)
-                if match:
-                    domain = match.group(1).lower().strip('.') # 1. Strip trailing dots
+                # 6. Check for invalid patterns
+                if ('*' in domain or  # Ignore wildcards (invalid in hosts file)
+                    '..' in domain or 
+                    domain.startswith('-') or 
+                    domain.endswith('-') or 
+                    domain == block_ip or
+                    '.' not in domain):
+                    continue
 
-                    # 2. Add stricter validation
-                    if not domain: # Skip if domain was just '.'
-                        continue
+                # 7. (Optional but recommended) Check each part (label)
+                if any(label.startswith('-') or label.endswith('-') for label in domain.split('.')):
+                    continue
 
-                    # 3. Check for invalid patterns
-                    if ('..' in domain or 
-                        domain.startswith('-') or 
-                        domain.endswith('-') or 
-                        domain == block_ip or
-                        '.' not in domain):
-                        continue
-
-                    # 4. (Optional but recommended) Check each part (label)
-                    if any(label.startswith('-') or label.endswith('-') for label in domain.split('.')):
-                        continue
-
-                    unique_domains.add(domain)
+                unique_domains.add(domain)
 
     except urllib.error.URLError as e:
         print(f"   [ERROR] Could not fetch {url}: {e.reason}")
@@ -87,9 +129,6 @@ def generate_hosts_file(output_path: str):
     temp_file_path = None
     try:
         # 1. Write to a NamedTemporaryFile
-        # delete=False ensures the file is available for os.rename after the context manager closes.
-        # dir=os.path.dirname(output_path) or '.' ensures the temp file is created in the same filesystem
-        # to guarantee the atomic rename operation.
         with tempfile.NamedTemporaryFile(mode='w', delete=False, dir=os.path.dirname(output_path) or '.') as tmp_file:
             temp_file_path = tmp_file.name
             
@@ -118,6 +157,15 @@ def main():
     """
     Main execution function.
     """
+    # Check for output file path argument
+    if len(sys.argv) != 2:
+        print(f"Usage: {sys.argv[0]} <output_hosts_file_path>", file=sys.stderr)
+        print(" -> ERROR: Please provide the full output path for the blocklist file.", file=sys.stderr)
+        sys.exit(1)
+
+    output_path = sys.argv[1]
+    output_dir = os.path.dirname(output_path)
+
     # The default URL to use if the environment variable is missing or empty
     default_url = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
     
@@ -130,12 +178,23 @@ def main():
     if not blocklist_urls:
         print(f"WARNING: BLOCKLIST_URLS not provided or was empty. Defaulting to: {default_url}")
         blocklist_urls = [default_url]
-
+    
+    print(f"Processing {len(blocklist_urls)} list(s)...")
     for url in blocklist_urls:
         fetch_and_parse_list(url)
     
-    generate_hosts_file("/data/blocklists.hosts")
+    # Ensure the output directory exists
+    # If output_dir is an empty string (e.g., "blocklist.hosts" in current dir),
+    # no directory needs to be created.
+    if output_dir and not os.path.exists(output_dir):
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+            print(f"Created output directory: {output_dir}")
+        except OSError as e:
+            print(f"   [ERROR] Could not create directory {output_dir}: {e}")
+            return # Exit if we can't create the dir
 
+    generate_hosts_file(output_path)
 
 if __name__ == "__main__":
     main()
