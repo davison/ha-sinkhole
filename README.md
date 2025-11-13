@@ -26,6 +26,8 @@ Whether you're installing on a raspberry pi, a bare metal server, a local VM, or
 
 `ha-sinkhole` expects that you're running the installer from a "controller" machine (typically your PC) and targeting remote nodes for installation (such as VMs, Pi's or cloud instances). You can target the same machine you run the installer from though.
 
+![architecture](.files/ha-sinkhole-architecture.drawio.png "Basic Architecture")
+
 ### Pre-flight checklist
 
 1. Your controller machine has an up to date `linux` distro or MacOS (it may work with Windows but frankly I've no idea and don't really care).
