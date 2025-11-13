@@ -5,7 +5,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-# This action needs to write back to the PR branch
 permissions:
   contents: write
   pull-requests: read
@@ -14,14 +13,17 @@ jobs:
   autobump:
     name: 🤖 Bump Version
     runs-on: ubuntu-latest
+    
+    # This prevents the workflow from re-triggering itself.
+    # It will only run if the event was triggered by a user,
+    # not by the 'github-actions[bot]' that this workflow uses.
+    if: github.actor != 'github-actions[bot]'
 
     steps:
       - name: ⬇️ Checkout PR Branch
         uses: actions/checkout@v4
         with:
-          # Check out the PR branch (github.head_ref)
           ref: ${{ github.head_ref }}
-          # Fetch full history to be able to diff against the base branch
           fetch-depth: 0
 
       - name: ⚙️ Configure Git
@@ -44,7 +46,6 @@ jobs:
         run: |
           python .github/scripts/bump_versions.py
         env:
-          # Set env vars for the script
           BASE_REF: "origin/${{ github.base_ref }}"
           HEAD_REF: "origin/${{ github.head_ref }}"
 
@@ -54,6 +55,6 @@ jobs:
           echo "Committing and pushing version bumps..."
           # Add all VERSION files that were modified
           git add ./**/VERSION
-          git commit -m "chore: automatic version bumps [skip ci]"
+          git commit -m "chore: automatic version bumps"
           # Push to the PR branch (HEAD)
           git push origin HEAD:${{ github.head_ref }}
