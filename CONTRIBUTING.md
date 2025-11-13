@@ -78,20 +78,21 @@ Once you have the local images you can test them with a container runtime.
   ```
 - Verify expected behaviour (logs, network, volumes, etc.) before opening a PR.
 
-If you want to work on the ansible code in the installer, the best approach is probably to create a python `venv` in the `installer` directory. If you name it `.venv` it will be ignored via `.gitignore`
+If you want to work on the ansible code in the `installer`, the best approach is probably to create a python `venv` in the project root directory (can also help with the python code in some of the Github Action code in `./.github`). If you name it `.venv` it will be ignored via `.gitignore`
 
 ```bash
-cd installer && python -m venv .venv
+python -m venv .venv
 source .venv/bin/activate # <-- pick appropriate activate command for your shell.. .csh|.fish etc.
 pip install ansible
-mkdir ../.local # <-- will also be ignored by git
-cp inventory.example.yaml ../.local/inventory.yaml
+mkdir .local # <-- will also be ignored by git
+cp installer/inventory.example.yaml .local/inventory.yaml
 # edit ../.local/inventory.yaml to suit
 ```
 
-This will enable you to hack and test the ansible code without having to mess about with containers until your feature or change is stable.
+This will enable you to hack and test the ansible code without having to mess about with containers until your feature or change is ready to push.
 
 ```bash
+cd installer
 ansible-playbook -i ../.local/inventory.yaml playbooks/install.yaml
 ```
 
