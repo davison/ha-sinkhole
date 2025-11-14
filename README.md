@@ -1,6 +1,12 @@
 # HA Sinkhole <!-- omit from toc -->
 
-#### Contents <!-- omit from toc -->
+<table style="border:0px">
+  <tr>
+    <td>
+      <img src=".files/ha-sinkhole-architecture-logo.drawio.svg" alt="logo" title="HA Sinkhole" style="height: 300px">
+    </td>
+    <td>
+
 - [Intro](#intro)
   - [Installation pre-flight checklist](#installation-pre-flight-checklist)
 - [Quick Start Guide](#quick-start-guide)
@@ -11,6 +17,7 @@
   - [DNS Sinkhole Nodes](#dns-sinkhole-nodes)
   - [Log Aggregators](#log-aggregators)
   - [Visualisation](#visualisation)
+</table>
 
 ## Intro
 `ha-sinkhole` is inspired by the fantastic [pi-hole](https://github.com/pi-hole/pi-hole) project, big shout out to the creators and contributors there!
