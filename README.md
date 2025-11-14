@@ -2,11 +2,12 @@
 
 #### Contents <!-- omit from toc -->
 - [Intro](#intro)
+  - [Installation pre-flight checklist](#installation-pre-flight-checklist)
 - [Quick Start Guide](#quick-start-guide)
-  - [Pre-flight checklist](#pre-flight-checklist)
   - [Config setup](#config-setup)
-  - [Install as planned](#install-as-planned)
+  - [Install from inventory](#install-from-inventory)
 - [Customising Deployments](#customising-deployments)
+  - [Installation PC](#installation-pc)
   - [DNS Sinkhole Nodes](#dns-sinkhole-nodes)
   - [Log Aggregators](#log-aggregators)
   - [Visualisation](#visualisation)
@@ -22,15 +23,13 @@ You can deploy one or more `ha-sinkhole` DNS nodes that will share a virtual IP 
 
 Whether you're installing on a raspberry pi, a bare metal server, a local VM, or on cloud instances, it should work if your machines meet the pre-flight checklist. As `ha-sinkhole` uses containers, deploying inside a container is unlikely to succeed. The installer is a flexible, remote install service that enables you to define your layout of nodes (for DNS, logging and visualisation services) including mixing local DNS with cloud environments for logging and observability.
 
-## Quick Start Guide
+### Installation pre-flight checklist
 
-`ha-sinkhole` expects that you're running the installer from a "controller" machine (typically your PC) and targeting remote nodes for installation (such as VMs, Pi's or cloud instances). You can target the same machine you run the installer from though.
+`ha-sinkhole` expects that you're running the installer from a "controller" machine (typically your PC) and targeting remote nodes for installation (such as VMs, Pi's or cloud instances). You can however target the same machine you run the installer from.
 
-![architecture](.files/ha-sinkhole-architecture.drawio.svg "Basic Architecture")
+Both controller and the target machines you want to install components on need to meet some criteria:
 
-### Pre-flight checklist
-
-1. Your controller machine has an up to date `linux` distro or MacOS (it may work with Windows but frankly I've no idea and don't really care).
+1. Your controller machine has an up to date `linux` distro or MacOS (it may work with Windows but I've no idea).
 2. You have a container management application installed on that same machine. [podman](https://podman.io/) is strongly recommended, [docker](https://www.docker.com/) should also just work. Install it using your distro's packaging tool.
 3. You have added your SSH key to a local `ssh-agent` with `ssh-add` on the controller node and the `SSH_AUTH_SOCK` environment variable is set (check by running `env | grep SSH`)
 4. You have one or more target nodes to deploy `ha-sinkhole` components to and these also have suitable and modern operating systems (Linux, RasPi, MacOS)
@@ -38,11 +37,15 @@ Whether you're installing on a raspberry pi, a bare metal server, a local VM, or
 
 The installation makes use of passwordless SSH and being able to become root on the target nodes in order to perform any install or uninstall task, so you will need to set these up first if you don't already have them working.
 
+## Quick Start Guide
+
+This is the minimal way to get two machines working in an HA configuration and serving DNS requests including sinkhole features.
+
 ### Config setup
 
-First, on your controller node, create a config file named (by convention but it doesn't matter) `inventory.yaml`. You can create it anywhere for now. In it, you need to specify, at minimum, one target node - ideally more than one if you actually want HA! - the VIP address and a secret. The secret is simply used to manage cluster membership for the VIP but if you're on an open or insecure network, make it 15-20 characters. To make the service actually useful, you want to add upstream DNS server(s) and at least one block list.
+First, on your controller node, create a config file named (by convention but it doesn't matter) `inventory.yaml`. You can create it anywhere for now. In it, you need to specify your target nodes, the VIP address and a secret. The secret is simply a token used to identify cluster membership for the VIP manager. To make the service actually useful, you want to add upstream DNS server(s) and at least one block list.
    
-Below is a minimal config to get 2 remote nodes installed (accessible at `192.168.0.1` and `192.168.0.2` and sharing a VIP of `192.168.0.53`)
+Below is an example config to get 2 remote nodes installed (accessible at `192.168.0.1` and `192.168.0.2` and sharing a VIP of `192.168.0.53`)
 
    ```yaml
       # DNS node group config
@@ -70,19 +73,35 @@ Below is a minimal config to get 2 remote nodes installed (accessible at `192.16
             ansible_host: 192.168.0.2
    ```
 
-### Install as planned
+### Install from inventory
 
-Once you have your inventory (config) you can run the [installer](./installer/README.md) container via the shell script wrapper. This should collect the location of your inventory file and a "command" (use `install`) to run through the installation on both your nodes in parallel.
+Once you have your inventory (config) you can run the [installer](./installer/README.md) container via the shell script wrapper. This will ask for the location of your inventory file and a "command" (use `install`) to run through the installation on both your nodes in parallel.
 
 ```bash
 curl github.com/davison/ha-sinkhole/blob/main/install.sh | bash
 ```
 
-Configure your DNS clients with the `vip` address, make sure this address can't be obtained by anything else on your network (exclude from any DHCP range).
+Test your service with something like:
 
-Profit with ad-free browsing and highly available DNS.
+```bash
+# test blocking
+dig +short @192.168.0.53 doubleclick.com
+
+# test upstream forwarding
+dig +short @192.168.0.53 google.com
+```
+
+Finally, configure your DNS clients with the `vip` address, make sure this address can't be obtained by anything else on your network (i.e. exclude it from any DHCP range) and profit with ad-free browsing and highly available DNS.
 
 ## Customising Deployments
+
+This diagram shows the basic architecture of `ha-sinkhole`. 
+
+![architecture](.files/ha-sinkhole-architecture.drawio.svg "Basic Architecture")
+
+### Installation PC
+
+The installation machine is not part of the runtime, it does not need a connection to the servers once they are installed and running. However, you should keep the inventory safe because if you ever need to make changes to the setup, you change the inventory file, re-run the installation service and it will make only the required changes. 
 
 ### DNS Sinkhole Nodes
 
