@@ -31,6 +31,17 @@
             <mxPoint x="145" y="115" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="pzs4RW3F1BzVTe-qp-hS-60" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="pzs4RW3F1BzVTe-qp-hS-4" source="pzs4RW3F1BzVTe-qp-hS-8" target="pzs4RW3F1BzVTe-qp-hS-7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="260" as="sourcePoint" />
+            <mxPoint x="360" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pzs4RW3F1BzVTe-qp-hS-61" value="healthcheck" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="pzs4RW3F1BzVTe-qp-hS-60">
+          <mxGeometry x="-0.0386" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="pzs4RW3F1BzVTe-qp-hS-5" value="DNS Server" style="swimlane;html=1;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;convertToSvg=0;whiteSpace=wrap;textShadow=0;labelBorderColor=none;labelBackgroundColor=none;strokeColor=#808080;" vertex="1" parent="1">
           <mxGeometry x="440" y="400" width="360" height="320" as="geometry" />
         </mxCell>
@@ -56,6 +67,17 @@
           <mxGeometry width="160" relative="1" as="geometry">
             <mxPoint x="220" y="85" as="sourcePoint" />
             <mxPoint x="210" y="595" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pzs4RW3F1BzVTe-qp-hS-62" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="pzs4RW3F1BzVTe-qp-hS-5" source="pzs4RW3F1BzVTe-qp-hS-6" target="pzs4RW3F1BzVTe-qp-hS-9">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="89.5" y="190" as="sourcePoint" />
+            <mxPoint x="89.5" y="130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pzs4RW3F1BzVTe-qp-hS-63" value="healthcheck" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="pzs4RW3F1BzVTe-qp-hS-62">
+          <mxGeometry x="-0.0386" relative="1" as="geometry">
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="pzs4RW3F1BzVTe-qp-hS-29" value="Installer PC" style="swimlane;html=1;labelPosition=center;verticalLabelPosition=middle;align=center;verticalAlign=middle;convertToSvg=0;whiteSpace=wrap;textShadow=0;labelBorderColor=none;labelBackgroundColor=none;strokeColor=#808080;" vertex="1" parent="1">
