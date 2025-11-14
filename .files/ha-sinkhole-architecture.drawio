@@ -155,10 +155,20 @@
             <mxPoint x="440" y="600" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="pzs4RW3F1BzVTe-qp-hS-64" value="Install or&lt;div&gt;update&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="pzs4RW3F1BzVTe-qp-hS-52">
+          <mxGeometry x="0.2107" y="-2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="pzs4RW3F1BzVTe-qp-hS-53" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pzs4RW3F1BzVTe-qp-hS-1" target="pzs4RW3F1BzVTe-qp-hS-5">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="390" y="650" as="sourcePoint" />
             <mxPoint x="440" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pzs4RW3F1BzVTe-qp-hS-65" value="Install or&lt;div&gt;update&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="pzs4RW3F1BzVTe-qp-hS-53">
+          <mxGeometry x="-0.153" y="-1" relative="1" as="geometry">
+            <mxPoint x="27" y="19" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="pzs4RW3F1BzVTe-qp-hS-54" value="" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.devices.workstation;" vertex="1" parent="1">
