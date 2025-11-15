@@ -54,6 +54,13 @@ The `dns-node` container is configured through the following setings defined in 
           local_upstream_dns: 192.168.0.1
     ```
 
+* `local_hosts` is a list of IP:hostname mappings, each line being in the same format that would be valid in a system's `/etc/hosts` file. This setting enables you to override addresses in the blocklist, declare aliases for hosts on your network that wouldn't otherwise be resolved by your `local_upstream_dns` server or any other reason you need to fix a host to an IP manually.
+    ```yaml
+      local_hosts:
+        - "5.6.7.8 my.server.com"
+        - "192.168.0.100 nas.local media.local docs.local"
+    ```
+
 ## Logging
 
 Logs for the `dns-node` container can be viewed using the journal:
