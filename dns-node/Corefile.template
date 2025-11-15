@@ -9,7 +9,13 @@
     forward ${LOCAL_DOMAIN} ${LOCAL_UPSTREAM_DNS}
 
     hosts /data/blocklists.hosts {
+        # only a single hosts plugin is permitted per server block so 
+        # to work around that, inline the local hosts here. A glob is
+        # used to prevent an error in the case that the file doesn't exist
+        import /data/local.hosts*
         ${CORE_RELOAD}
+        no_reverse
+        ttl 7200
         fallthrough
     }
     

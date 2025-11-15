@@ -9,9 +9,13 @@
   # Explicitly require privilege escalation
   become: true
   when: service_scope == 'system'
-  # If the state is 'stopped', ignore errors (e.g., "service not found").
-  # If the state is 'started', do NOT ignore errors.
-  ignore_errors: "{{ service_state == 'stopped' }}"
+  register: service_result
+  failed_when:
+    # Always fail if the desired state is 'started' and the task failed.
+    - service_state == 'started' and service_result is failed
+    # Fail if the desired state is 'stopped', the task failed, AND the failure
+    # is NOT the "service not found" error (which systemd reports as return code 5).
+    - service_state == 'stopped' and service_result is failed and service_result.rc != 5
 
 # 2. Manages USER services, which REQUIRE no root access (become: false)
 - name: "Managing user service: {{ service_name + ':' + service_state }}"
@@ -19,10 +23,13 @@
     name: "{{ service_name }}"
     state: "{{ service_state }}"
     scope: user
-
   # Explicitly forbid privilege escalation
   become: false
   when: service_scope == 'user'
-  # If the state is 'stopped', ignore errors (e.g., "service not found").
-  # If the state is 'started', do NOT ignore errors.
-  ignore_errors: "{{ service_state == 'stopped' }}"
+  register: service_result
+  failed_when:
+    # Always fail if the desired state is 'started' and the task failed.
+    - service_state == 'started' and service_result is failed
+    # Fail if the desired state is 'stopped', the task failed, AND the failure
+    # is NOT the "service not found" error (which systemd reports as return code 5).
+    - service_state == 'stopped' and service_result is failed and service_result.rc != 5

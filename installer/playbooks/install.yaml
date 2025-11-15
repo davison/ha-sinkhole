@@ -2,6 +2,7 @@
 - name: Install ha-sinkhole DNS nodes
   hosts: dns_nodes
   become: true
+  strategy: linear
   roles:
     - ha_sinkhole_common
 
@@ -27,24 +28,31 @@
         scope: user
 
   tasks:
-    - name: ⚙️  1. Check environment and dependencies
+    - name: ⚙️  Setup environment and dependencies
       block:
-        - name: ⚙️  Ensure podman is installed
+        - name: Ensure podman is installed
           ansible.builtin.package:
             name: podman
             state: present
 
-        - name: ⚙️  Enable user lingering for {{ ansible_user }}
+        - name: Enable user lingering for {{ ansible_user }}
           ansible.builtin.command: "loginctl enable-linger {{ ansible_user }}"
           args:
             creates: "/var/lib/systemd/linger/{{ ansible_user }}"
 
-        - name: ⚙️  Create data dir
+        - name: Create data dir
           ansible.builtin.file:
-            path: '{{ ha_sinkhole_common_data_dir }}'
+            path: "{{ ha_sinkhole_common_data_dir }}"
             state: directory
-            owner: '{{ ansible_user }}'
-            mode: '0755'
+            owner: "{{ ansible_user }}"
+            mode: "0755"
+
+        - name: Create local hosts aliases
+          ansible.builtin.template:
+            src: "local.hosts.j2"
+            dest: "{{ ha_sinkhole_common_data_dir }}/local.hosts"
+            owner: "{{ ansible_user }}"
+            mode: "0644"
 
     - name: 🎯  Merge host-specific HA variables
       ansible.builtin.set_fact:
@@ -52,13 +60,13 @@
         # The | default({}) prevents errors if a host has no overrides.
         ha_vars: "{{ ha_vars | combine(ha_vars_overrides | default({})) }}"
 
-    - name: 📦  2. Install systemd units
+    - name: 📦  Install systemd units
       block:
         - name: Template vip-manager container file
           ansible.builtin.template:
             src: "vip-manager.container.j2"
             dest: "{{ ha_sinkhole_common_systemd_dir }}/vip-manager.container"
-            mode: '0644'
+            mode: "0644"
           notify:
             - Reload systemd (root)
             - Restart vip-manager
@@ -67,7 +75,7 @@
           ansible.builtin.copy:
             src: "blocklist-updater.timer"
             dest: "/etc/systemd/user/blocklist-updater.timer"
-            mode: '0644'
+            mode: "0644"
           notify:
             - Reload systemd (user)
             - Restart blocklist-updater timer
@@ -76,7 +84,7 @@
           ansible.builtin.template:
             src: "dns-node.container.j2"
             dest: "{{ ha_sinkhole_common_systemd_dir }}/users/dns-node.container"
-            mode: '0644'
+            mode: "0644"
           notify:
             - Reload systemd (user)
             - Restart dns-node
@@ -85,10 +93,10 @@
           ansible.builtin.template:
             src: "blocklist-updater.container.j2"
             dest: "{{ ha_sinkhole_common_systemd_dir }}/users/blocklist-updater.container"
-            mode: '0644'
+            mode: "0644"
           notify: Reload systemd (user)
 
-        - name: 🔄 Flush handlers to reload systemd
+        - name: Flush handlers to reload systemd
           ansible.builtin.meta: flush_handlers
 
     - name: 🚀 Enable and start services
