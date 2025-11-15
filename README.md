@@ -2,10 +2,10 @@
 
 <table style="border:0px">
   <tr>
-    <td>
+    <td style="border:0px">
       <img src=".files/ha-sinkhole-architecture-logo.drawio.svg" alt="logo" title="HA Sinkhole" style="height: 300px">
     </td>
-    <td>
+    <td style="border:0px">
 
 - [Intro](#intro)
   - [Installation pre-flight checklist](#installation-pre-flight-checklist)
