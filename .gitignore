@@ -1,4 +1,5 @@
-.local/
-.vscode/
-.venv/
+.ansible
 .github/node_modules
+.local/
+.venv/
+.vscode/
