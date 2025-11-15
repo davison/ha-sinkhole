@@ -10,8 +10,7 @@ set -eou pipefail
 inventory_file=""
 playbook="install"
 container_cmd=podman
-#installer_container=ghcr.io/davison/ha-sinkhole/installer:latest
-installer_container=localhost/ha-sinkhole/installer:local
+installer_container=ghcr.io/davison/ha-sinkhole/installer:latest
 
 error_exit() {
     echo "❌ ERROR: $1" >&2
