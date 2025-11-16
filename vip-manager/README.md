@@ -49,7 +49,7 @@ For `vip-manager`, the following configuration values from the inventory config 
           vrrsp_secret: wh0_goes_th3r3
     ```
 
-*   `state` specifies the node state that machines will try to start in. It defaults to `BACKUP`. If all your nodes will start as `BACKUP`, and they will elect a `MASTER` based on a combination of `priority`, IP address and status of the `dns-node` service, though these details are mnostly irrelevant. To create a preferred master, launch that one container with `state:MASTER` and a higher priority as shown in the overridden `ha_vars`. You probably want to do this if you have one machine with better hardware than the others that should always be preferred as a primary service provider.
+*   `state` specifies the node state that machines will try to start in. It defaults to `BACKUP`. If all your nodes start as `BACKUP`, they will elect a `MASTER` based on a combination of `priority`, IP address and status of the `dns-node` service, though these details are mostly irrelevant. To create a preferred master, launch that one container with `state:MASTER` and a higher priority as shown in the overridden `ha_vars`. You probably want to do this if you have one machine with better hardware than the others that should always be preferred as a primary service provider.
     ```yaml
     dns_nodes:
       vars:
