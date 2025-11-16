@@ -34,10 +34,10 @@ no-cache:
 
 .SILENT:
 clean:
-	@echo ">> Cleaning built images"
-	$(foreach img,$(IMAGE_DIRS),del-$(patsubst %/Containerfile,%,$(patsubst %/Dockerfile,%,$(img))))
+#	@echo ">> Cleaning built images"
+#	 $(foreach img,$(IMAGE_DIRS),del-$(patsubst %/Containerfile,%,$(patsubst %/Dockerfile,%,$(img))))
 	@echo ">> Cleaning dangling images"
-	@$(CONTAINER_CMD) rmi $(DANGLING) > /dev/null 2>&1
+	@$(CONTAINER_CMD) rmi $(DANGLING) > /dev/null
 
 .SILENT:
 del-%:

@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Container]
-Image=ghcr.io/davison/ha-sinkhole/vip-manager:{{ ha_sinkhole_manifest.install_channel.vip-manager | default('MISSING_VERSION') }}
+Image=ghcr.io/davison/ha-sinkhole/vip-manager:{{ ha_sinkhole_manifest[install_channel]['vip-manager'] | default('MISSING_VERSION') }}
 Environment=VIRTUAL_IP={{ ha_vars.vip }}
 Environment=VRRP_SECRET={{ ha_vars.vrrp_secret }}
 Environment=NODE_STATE={{ ha_vars.state | default('BACKUP') }}
