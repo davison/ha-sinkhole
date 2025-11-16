@@ -32,13 +32,18 @@ build-%:
 no-cache:
 	@$(MAKE) all NO_CACHE=--no-cache
 
-#.SILENT:
+.SILENT:
 clean:
-#	@echo ">> Cleaning built images"
-#	$(foreach img,$(IMAGE_DIRS),$(CONTAINER_CMD) rmi localhost/$(TAG_PREFIX)/$(patsubst %/Containerfile,%,$(patsubst %/Dockerfile,%,$(img))):$(TAG_VERSION))
+	@echo ">> Cleaning built images"
+	$(foreach img,$(IMAGE_DIRS),del-$(patsubst %/Containerfile,%,$(patsubst %/Dockerfile,%,$(img))))
 	@echo ">> Cleaning dangling images"
 	@$(CONTAINER_CMD) rmi $(DANGLING) > /dev/null 2>&1
 
+.SILENT:
+del-%:
+	@echo ">> Deleting image $(TAG_PREFIX)/$*:$(TAG_VERSION)"
+	@$(CONTAINER_CMD) rmi "$(TAG_PREFIX)/$*":$(TAG_VERSION) > /dev/null
+
 # Tell make these aren't actual files
 .SILENT:
-.PHONY: all no-cache $(foreach img,$(IMAGE_NAMES),build-$(patsubst %/Containerfile,%,$(patsubst %/Dockerfile,%,$(img))))
+.PHONY: all no-cache $(foreach img,$(IMAGE_NAMES),build-$(patsubst %/Containerfile,%,$(patsubst %/Dockerfile,%,$(img)))) $(foreach img,$(IMAGE_NAMES),del-$(patsubst %/Containerfile,%,$(patsubst %/Dockerfile,%,$(img))))

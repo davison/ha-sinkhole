@@ -41,7 +41,7 @@ The `installer` itself has no configuration, it acts on the inventory to plan in
 
 There are 3 main sections to the inventory;
 
-* `all` - the global section. `vars` declared in here will apply to all nodes in all node groups but can be selectively overridden by redefining them at the group or node level. Note that it doesn't always make sense to override some vars: the `install_channel` should be consistently applied across all nodes and components in a logical application. Mixing `stable` and `latest` components is probably going to result in several breakages.
+* `all` - the global section. `vars` declared in here will apply to all nodes in all node groups but can be selectively overridden by redefining them at the group or node level. Note that it doesn't always make sense to override some vars: the `install_channel` should be consistently applied across all nodes and components in a logical application. Mixing `stable` and `edge` (or other channel) components is probably going to result in several breakages.
   
 * node groups define configuration specific to the different types of nodes in HA Sinkhole.
   * DNS Nodes - the combination of resolvers, blocklist management and VIP management that enables the actual HA part of the service.

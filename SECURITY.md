@@ -7,14 +7,12 @@
 
 All use of pre-1.0.0 versions of components is entirely at your own risk
 
-All container images carry a semantic version tag, and optionally a `latest` or `stable` channel tag. You should always install 
-  either `latest` or `stable` and not one of the numeric semver tags unless you've been advised to do so - for example
-  to temporarily deal with some regression issue or incompatibility in the most recent channel version.
+All container images carry a semantic version tag, mapped by "channel" releases in the [manifest](https://github.com/davison/ha-sinkhole/releases). You should always install either `edge` or `stable` (or another channel label) and not one of the numeric semver tags unless you've been advised to do so - for example to temporarily deal with some regression issue or incompatibility in the most recent channel version.
   
 | Container Version | Supported          |
 | ----------- | ------------------ |
 | semver < 1.0.0     | 🔴
-| `latest` (semver >= 1.0.0)     | 🟢 |
+| `edge` (semver >= 1.0.0)     | 🟢 |
 | `stable` (semver >= 1.0.0)      | 🟢 |
 | (any other) | 🔴             |
 

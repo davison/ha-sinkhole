@@ -109,7 +109,7 @@ The installation machine is not part of the runtime, it does not need a connecti
 
 Each DNS sinkhole node is made up from 3 containers, each performing a specific function. All containers are configured through the installation config file that you created as part of the Quick Start guide above. Or if you haven't yet, you may want to create one from the [example inventory file](./installer/inventory.example.yaml) instead.
 
-The installer will install `stable` versions of containers and components by default. If you want the bleeding edge, add or change the `install_channel` to `latest` in your inventory file.
+The installer will install `stable` versions of containers and components by default. If you want the bleeding edge, add or change the `install_channel` to `edge` in your inventory file.
 
 The three containers making up a DNS sinkhole node are: 
 
