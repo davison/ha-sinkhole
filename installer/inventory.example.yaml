@@ -20,8 +20,10 @@ dns_nodes:
     ha_vars:
       # MUST be set. Do not override per host
       vip: 192.168.0.53
+
       # MUST be set. Do not override per host
       vrrp_secret: super_duper_s3cr3t
+
       # Defaults to BACKUP. If all your nodes are configured to start as BACKUP,
       # they will elect a MASTER based on priority. To create a preferred master,
       # override that one host with state=MASTER.
@@ -62,6 +64,16 @@ dns_nodes:
       #local_hosts:
       #  - "5.6.7.8 my.server.com"
       #  - "192.168.0.100 nas.local media.local docs.local"
+
+      # Trusted nets are the CIDRs that the DNS resolver will allow queries to
+      # originate from. This defaults to the RFC1918 address sets plus the guest
+      # address that podman rootless network uses if unconfigured. But this can
+      # be locked down further or expanded as required.
+      #trusted_nets:
+      #  - 192.168.0.0/16
+      #  - 172.16.0.0/12
+      #  - 10.0.0.0/8
+      #  - 169.254.1.2/32
 
       # Defaults to publicly available Quad1 and Quad9 servers for upstream
       # resolution. You may want to use an internal router address or an ISP

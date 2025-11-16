@@ -1,9 +1,16 @@
 .:1053 {
     ${CORE_RELOAD}
-    log       
+    log
+    any
+    local
     
     health :8080 {
        lameduck 5s
+    }
+
+    acl {
+        allow net ${TRUSTED_NETS}
+        block
     }
 
     forward ${LOCAL_DOMAIN} ${LOCAL_UPSTREAM_DNS}
@@ -13,7 +20,6 @@
         # to work around that, inline the local hosts here. A glob is
         # used to prevent an error in the case that the file doesn't exist
         import /data/local.hosts*
-        ${CORE_RELOAD}
         no_reverse
         ttl 7200
         fallthrough
