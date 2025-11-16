@@ -97,6 +97,7 @@ fi
 # --- 6. Execution and Output ---
 echo Running installer...
 
+$container_cmd pull "$installer_container"
 $container_cmd run \
     --rm \
     --net=host \
