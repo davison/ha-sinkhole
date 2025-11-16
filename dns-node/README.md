@@ -61,6 +61,13 @@ The `dns-node` container is configured through the following setings defined in 
         - "192.168.0.100 nas.local media.local docs.local"
     ```
 
+* `trusted_nets` are the CIDRs that the DNS resolver will allow queries to originate from. This defaults to the RFC1918 address sets plus the guest address that podman rootless network uses if unconfigured. But this can be locked down further or expanded as required.
+    ```yaml
+      trusted_nets:
+        - 192.168.0.1/24
+        - 169.254.1.2/32
+    ```
+
 ## Logging
 
 Logs for the `dns-node` container can be viewed using the journal:

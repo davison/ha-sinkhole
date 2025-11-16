@@ -3,6 +3,7 @@
 export LOCAL_DOMAIN=${LOCAL_DOMAIN:-_invalid.local}
 export LOCAL_UPSTREAM_DNS=${LOCAL_UPSTREAM_DNS:-8.8.4.4}
 export UPSTREAM_DNS=${UPSTREAM_DNS:-1.1.1.1 9.9.9.9}
+export TRUSTED_NETS=${TRUSTED_NETS:-192.168.0.0/16 172.16.0.0/12 10.0.0.0/8 169.254.1.2/32}
 
 if [ "$SINKHOLE_DEBUG" == "true" ]; then
     export CORE_RELOAD="reload 10s"
