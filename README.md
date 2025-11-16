@@ -46,7 +46,7 @@ This is the minimal way to get two machines working in an HA configuration and s
 
 ### Config setup
 
-First, on your controller node, create a config file named (by convention but it doesn't matter) `inventory.yaml`. You can create it anywhere for now. In it, you need to specify your target nodes, the VIP address and a secret. The secret is simply a token used to identify cluster membership for the VIP manager. To make the service actually useful, you want to add upstream DNS server(s) and at least one block list.
+First, on your controller node, create a config file named (by convention but it doesn't matter) `inventory.yaml`. You can create it anywhere for now. In it, you need to specify your target nodes, the VIP address and a secret. The secret is simply a token used to identify cluster membership for the VIP manager. Default upstream DNS servers and a default blocklist are provided, you can change them later in config.
    
 Below is an example config to get 2 remote nodes installed (accessible at `192.168.0.1` and `192.168.0.2` and sharing a VIP of `192.168.0.53`)
 
@@ -58,15 +58,6 @@ Below is an example config to get 2 remote nodes installed (accessible at `192.1
           ha_vars:
             vip: 192.168.0.53 # <-- the floating IP shared among the nodes
             vrrp_secret: super_duper_s3cr3t
-            
-            # a list of DNS servers to send queries to that aren't blocked
-            upstream_dns: 
-              - 1.1.1.1
-              - 9.9.9.9
-            
-            # a list of URLs containing block lists of domains
-            blocklist_urls: 
-              - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
         
         # members of the dns_nodes group
         hosts:
@@ -104,7 +95,7 @@ Open a terminal and get a consistent DNS lookup going against your VIP with some
 while true; do dig +short google.com; sleep 1; done
 ```
 
-Now let's kill the primary service and see what happens. SSH to your two `dns-node`'s and figure out the machine with the VIP (`ip addr` or `ifconfig` will tell you). On that machine, shut down the `dns-node`;
+Now let's kill the primary service and see what happens. SSH to your two `dns-node`'s in new terminals and figure out the machine with the VIP (`ip addr` or `ifconfig` will tell you). On that machine, shut down the `dns-node`;
 
 ```bash
 systemctl --user stop dns-node
