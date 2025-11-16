@@ -8,6 +8,7 @@
 - [Quick Start Guide](#quick-start-guide)
   - [Config setup](#config-setup)
   - [Install from inventory](#install-from-inventory)
+  - [Test the HA](#test-the-ha)
 - [Customising Deployments](#customising-deployments)
   - [Installation PC](#installation-pc)
   - [DNS Sinkhole Nodes](#dns-sinkhole-nodes)
@@ -23,7 +24,7 @@ I created `ha-sinkhole` to solve specifically that problem. It addresses that si
 
 You can deploy one or more `ha-sinkhole` DNS nodes that will share a virtual IP (VIP) address on your network. The nodes will take care of managing the IP address and if a node fails or is taken down during maintenance, one of the others will assume the VIP automatically. You configure all your DNS clients with the VIP as their DNS server, ideally via DHCP, and therefore as long as at least one of your nodes is alive, your DNS and sinkhole service will be operational. Follow the quick start steps to get up and running. One machine will work, two is the minimum for high availability and more ca be added at any time if you want additional resilience.
 
-Whether you're installing on a raspberry pi, a bare metal server, a local VM, or on cloud instances, it should work if your machines meet the pre-flight checklist. As `ha-sinkhole` uses containers, deploying inside a container is unlikely to succeed. The installer is a flexible, remote install service that enables you to define your layout of nodes (for DNS, logging and visualisation services) including mixing local DNS with cloud environments for logging and observability.
+Whether you're installing on a raspberry pi, a bare metal server, a local VM, on cloud instances or a mixture of them, it should work if your machines meet the pre-flight checklist. As `ha-sinkhole` uses containers, deploying inside a container is unlikely to succeed. The installer is a flexible, remote install service that enables you to define your layout of nodes (for DNS, logging and visualisation services) including mixing local DNS with cloud services like Grafana for logging and observability.
 
 ### Installation pre-flight checklist
 
@@ -93,7 +94,33 @@ dig +short @192.168.0.53 doubleclick.com
 dig +short @192.168.0.53 google.com
 ```
 
-Finally, configure your DNS clients with the `vip` address, make sure this address can't be obtained by anything else on your network (i.e. exclude it from any DHCP range) and profit with ad-free browsing and highly available DNS.
+Next, configure your DNS clients with the `vip` address and make sure this address can't be obtained by anything else on your network (i.e. exclude it from any DHCP range). 
+
+### Test the HA
+
+Open a terminal and get a consistent DNS lookup going against your VIP with something like;
+
+```bash
+while true; do dig +short google.com; sleep 1; done
+```
+
+Now let's kill the primary service and see what happens. SSH to your two `dns-node`'s and figure out the machine with the VIP (`ip addr` or `ifconfig` will tell you). On that machine, shut down the `dns-node`;
+
+```bash
+systemctl --user stop dns-node
+```
+
+You should see that the VIP quickly transitions to the other node and that the DNS lookup in your first terminal continues uninterrupted, or with minimal error before resuming.
+
+Bring the service back up;
+
+```bash
+systemctl --user start dns-node
+```
+
+.. depending on your VIP manager config, the VIP will either stay where it is or transition back to this node if it is deemed a more worthy primary node.
+
+Finally, profit with ad-free browsing and highly available DNS 😊
 
 ## Customising Deployments
 
