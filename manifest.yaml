@@ -18,7 +18,7 @@
 
 stable:
   # Component versions guaranteed to work together after integration testing.
-  dns-node: "0.1.4"
+  dns-node: "0.2.1"
   vip-manager: "0.1.5"
   blocklist-updater: "0.1.3"
 
