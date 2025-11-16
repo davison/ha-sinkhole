@@ -1,0 +1,29 @@
+# ha-sinkhole Deployment Manifest
+#
+# PURPOSE:
+# This file defines mutually compatible, versioned sets of ha-sinkhole components
+# for specific deployment channels (e.g., stable, edge).
+#
+# RATIONALE:
+# - It solves the **"mutable tag problem"** by explicitly mapping channels to
+#   immutable semantic versions (e.g., 1.2.3), eliminating the container
+#   runtime's tendency to use old cached images tagged 'stable' or 'latest'.
+# - It replaces repository-wide **Git tags** which fail to support the
+#   independent versioning necessary for mono-repo component updates (e.g.,
+#   promoting a fix for component A without promoting a feature for component B).
+#
+# PUBLICATION:
+# This file is published as an immutable artifact (not committed directly to
+# the main branch) via the CI/CD pipeline, bypassing protected branch restrictions.
+
+stable:
+  # Component versions guaranteed to work together after integration testing.
+  dns-node: "0.1.4"
+  vip-manager: "0.1.5"
+  blocklist-updater: "0.1.3"
+
+edge:
+  # Latest published component versions used for pre-release testing.
+  dns-node: "0.2.1"
+  vip-manager: "0.1.5"
+  blocklist-updater: "0.1.3"

@@ -62,6 +62,31 @@
 
     - name: 📦  Install systemd units
       block:
+        - name: Fetch Deployment Manifest Artifact
+          ansible.builtin.uri:
+            # URL is constructed using the repo owner, repo name, release tag, and file name.
+            url: "{{ ha_sinkhole_common_gitrepo }}{{ ha_sinkhole_common_manifest_file }}"
+            method: GET
+            # Ensure the content is returned in the result object, not just HTTP status.
+            return_content: true
+            # Setting validate_certs to false might be required if Ansible runner environment has issues,
+            # but generally safe to omit as GitHub uses standard certs.
+            # validate_certs: false
+          register: manifest_lookup
+          tags: [manifest]
+
+        - name: Parse YAML and set version facts
+          ansible.builtin.set_fact:
+            # Convert the content string into a usable Ansible dictionary
+            ha_sinkhole_manifest: "{{ manifest_lookup.content | from_yaml }}"
+          tags: [manifest]
+
+        - name: DEBUG Verify manifest file content was fetched
+          ansible.builtin.debug:
+            msg: "Fetched channels: {{ ha_sinkhole_manifest | to_json }}"
+          when: ansible_verbosity > 0 # Only when running with -v
+          tags: [manifest]
+
         - name: Template vip-manager container file
           ansible.builtin.template:
             src: "vip-manager.container.j2"

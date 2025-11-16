@@ -1,0 +1,42 @@
+name: 📜 Publish Deployment Manifest
+
+# manual trigger
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'The immutable Git tag of the release to target for the manifest update (e.g., channel-manifest-artifact)'
+        required: true
+        default: 'channel-manifest-artifact'
+
+jobs:
+  publish_manifest:
+    runs-on: ubuntu-latest
+    
+    # Required to write to Releases.
+    permissions:
+      contents: write 
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        # We need the manifest.yaml file specifically
+        
+      - name: 🚀 Publish manifest.yaml as Release Asset
+        env:
+          # The GITHUB_TOKEN is automatically provisioned with the 'contents: write' permission
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MANIFEST_FILE="manifest.yaml"
+          RELEASE_TAG="${{ github.event.inputs.release_tag }}"
+          
+          echo "Attempting to upload $MANIFEST_FILE to release tag $RELEASE_TAG..."
+          
+          # The gh release upload command handles the entire process:
+          # 1. It finds the release by the tag name.
+          # 2. It uploads the specified file as an asset.
+          # 3. The --clobber flag is essential: it overwrites the asset if it already exists,
+          #    making the update atomic and clean.
+          gh release upload "${RELEASE_TAG}" "${MANIFEST_FILE}" --clobber
+          
+          echo "✅ Successfully updated the deployment manifest artifact."

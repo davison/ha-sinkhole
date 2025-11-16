@@ -3,7 +3,7 @@
 # -------------------------------------------------------------------------
 all:
   vars:
-    # optionally you can set 'latest' in order to install bleeding edge
+    # optionally you can set 'edge' in order to install bleeding edge
     # components. Do NOT override this at group or individual levels
     install_channel: stable
 
