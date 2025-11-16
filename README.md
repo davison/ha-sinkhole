@@ -2,6 +2,7 @@
 
 <img align="right" src=".files/ha-sinkhole-architecture-logo.drawio.svg" alt="logo" title="HA Sinkhole" style="height: 300px">
 
+
 - [Intro](#intro)
   - [Installation pre-flight checklist](#installation-pre-flight-checklist)
 - [Quick Start Guide](#quick-start-guide)
@@ -98,7 +99,7 @@ Finally, configure your DNS clients with the `vip` address, make sure this addre
 
 This diagram shows the basic architecture of `ha-sinkhole`. 
 
-![architecture](.files/ha-sinkhole-architecture.drawio.svg "Basic Architecture")
+![architecture](.files/ha-sinkhole-architecture-dns-node.drawio.svg "Basic Architecture")
 
 ### Installation PC
 
