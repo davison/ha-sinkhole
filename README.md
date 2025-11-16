@@ -22,6 +22,8 @@ I've used pi-hole for years and couldn't live without that functionality on my n
 
 I created `ha-sinkhole` to solve specifically that problem. It addresses that single concern and does not, by design, offer many of the existing pi-hole features (notably DHCP). It also currently comes with no visualisation features or web interface, but that will change once the core HA sinkhole feature is working and stable.
 
+![overview](.files/ha-sinkhole-architecture-overview.drawio.svg "Architecture Overview")
+
 You can deploy one or more `ha-sinkhole` DNS nodes that will share a virtual IP (VIP) address on your network. The nodes will take care of managing the IP address and if a node fails or is taken down during maintenance, one of the others will assume the VIP automatically. You configure all your DNS clients with the VIP as their DNS server, ideally via DHCP, and therefore as long as at least one of your nodes is alive, your DNS and sinkhole service will be operational. Follow the quick start steps to get up and running. One machine will work, two is the minimum for high availability and more ca be added at any time if you want additional resilience.
 
 Whether you're installing on a raspberry pi, a bare metal server, a local VM, on cloud instances or a mixture of them, it should work if your machines meet the pre-flight checklist. As `ha-sinkhole` uses containers, deploying inside a container is unlikely to succeed. The installer is a flexible, remote install service that enables you to define your layout of nodes (for DNS, logging and visualisation services) including mixing local DNS with cloud services like Grafana for logging and observability.
@@ -117,7 +119,7 @@ Finally, profit with ad-free browsing and highly available DNS 😊
 
 This diagram shows the basic architecture of `ha-sinkhole`. 
 
-![architecture](.files/ha-sinkhole-architecture-dns-node.drawio.svg "Basic Architecture")
+![dns-nodes](.files/ha-sinkhole-architecture-dns-node.drawio.svg "DNS Node Detailed Architecture")
 
 ### Installation PC
 
