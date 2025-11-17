@@ -32,6 +32,20 @@ Take a look through any open issues to see what things are a priority, and what 
    ```
 4. Hack on your branch and create a pull request in the main repository when ready.
 
+`ha-sinkhole` uses a large range of technologies. Depending on which part of the code you intend to work on, you'll beenfit from having tooling , IDE or editor support for the following:
+
+* Git / Github
+* Podman (container tools)
+* YAML
+* Markdown
+* Makefile
+* Bash
+* Python
+* Ansible
+* Jinja2
+* Grafana Alloy
+
+
 ## Pull requests
 1. Keep PRs small and focused.
 2. Rebase or squash local commits as appropriate before opening the PR. A PR can contain multiple commits, but each commit should be a logical change making up one part of the request.
