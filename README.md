@@ -117,15 +117,15 @@ Finally, profit with ad-free browsing and highly available DNS 😊
 
 ## Customising Deployments
 
-This diagram shows the basic architecture of `ha-sinkhole`. 
-
-![dns-nodes](.files/ha-sinkhole-architecture-dns-node.drawio.svg "DNS Node Detailed Architecture")
-
 ### Installation PC
 
 The installation machine is not part of the runtime, it does not need a connection to the servers once they are installed and running. However, you should keep the inventory safe because if you ever need to make changes to the setup, you change the inventory file, re-run the installation service and it will make only the required changes. 
 
 ### DNS Sinkhole Nodes
+
+This diagram shows a more detailed architecture of `dns-node` components. 
+
+![dns-nodes](.files/ha-sinkhole-architecture-dns-node.drawio.svg "DNS Node Detailed Architecture")
 
 Each DNS sinkhole node is made up from 3 containers, each performing a specific function. All containers are configured through the installation config file that you created as part of the Quick Start guide above. Or if you haven't yet, you may want to create one from the [example inventory file](./installer/inventory.example.yaml) instead.
 
