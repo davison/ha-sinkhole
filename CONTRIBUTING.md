@@ -35,7 +35,8 @@ Take a look through any open issues to see what things are a priority, and what 
 `ha-sinkhole` uses a large range of technologies. Depending on which part of the code you intend to work on, you'll beenfit from having tooling , IDE or editor support for the following:
 
 * Git / Github
-* Podman (container tools)
+* Podman
+* Container tools
 * YAML
 * Markdown
 * Makefile

@@ -1,6 +1,6 @@
 # HA Sinkhole <!-- omit from toc -->
 
-<img align="right" src=".files/ha-sinkhole-architecture-logo.drawio.svg" alt="logo" title="HA Sinkhole" style="height: 300px">
+<img align="right" src=".files/ha-sinkhole-architecture-logo.drawio.svg" alt="logo" title="HA Sinkhole" style="max-width: 250px">
 
 
 - [Intro](#intro)
@@ -9,18 +9,26 @@
   - [Config setup](#config-setup)
   - [Install from inventory](#install-from-inventory)
   - [Test the HA](#test-the-ha)
-- [Customising Deployments](#customising-deployments)
+- [A More Detailed Guide](#a-more-detailed-guide)
   - [Installation PC](#installation-pc)
   - [DNS Sinkhole Nodes](#dns-sinkhole-nodes)
   - [Log Aggregators](#log-aggregators)
   - [Visualisation](#visualisation)
+- [HOW-TOs and Cookbooks](#how-tos-and-cookbooks)
+  - [How can I...](#how-can-i)
+    - [Temporarily exclude one of my blocklists?](#temporarily-exclude-one-of-my-blocklists)
+    - [Upgrade to newer components?](#upgrade-to-newer-components)
+    - [Uninstall all the ha-sinkhole components?](#uninstall-all-the-ha-sinkhole-components)
+    - [Send metrics to my grafana cloud account?](#send-metrics-to-my-grafana-cloud-account)
 
-## Intro
-`ha-sinkhole` is inspired by the fantastic [pi-hole](https://github.com/pi-hole/pi-hole) project, big shout out to the creators and contributors there!
+# Intro
+`ha-sinkhole` is a highly available DNS sinkhole service, designed to prevent ads, trackers, malware and other unwanted content appearing in your browser, your mobile apps, your smart TVs and any other Internet connected device on your network.
+
+The project is inspired by the fantastic [pi-hole](https://github.com/pi-hole/pi-hole) (big shout out to the creators and contributors there) but is a completely different setup using different technologies and with no dependency on pi-hole.
 
 I've used pi-hole for years and couldn't live without that functionality on my network, but it's not easy to make it highly available and I really wanted that. There are several guides available for making pi-hole HA, but they're fragile, bolt-on solutions which are unsupported by the pi-hole project.
 
-I created `ha-sinkhole` to solve specifically that problem. It addresses that single concern and does not, by design, offer many of the existing pi-hole features (notably DHCP). It also currently comes with no visualisation features or web interface, but that will change once the core HA sinkhole feature is working and stable.
+`ha-sinkhole` was created specifically to solve that problem. It addresses that single concern and does not, by design, offer many of the existing pi-hole features (notably DHCP). At present the visualisation features and possible future web interface are unimplemented, but that will change once the core HA sinkhole feature is working and stable. Metric storage and visualisation will be enabled via open source components of the [Grafana](https://grafana.com) eco-system meaning you can run them locally or connect to your Grafana cloud account and manage them there.
 
 ![overview](.files/ha-sinkhole-architecture-overview.drawio.svg "Architecture Overview")
 
@@ -28,7 +36,7 @@ You can deploy one or more `ha-sinkhole` DNS nodes that will share a virtual IP 
 
 Whether you're installing on a raspberry pi, a bare metal server, a local VM, on cloud instances or a mixture of them, it should work if your machines meet the pre-flight checklist. As `ha-sinkhole` uses containers, deploying inside a container is unlikely to succeed. The installer is a flexible, remote install service that enables you to define your layout of nodes (for DNS, logging and visualisation services) including mixing local DNS with cloud services like Grafana for logging and observability.
 
-### Installation pre-flight checklist
+## Installation pre-flight checklist
 
 `ha-sinkhole` expects that you're running the installer from a "controller" machine (typically your PC) and targeting remote nodes for installation (such as VMs, Pi's or cloud instances). You can however target the same machine you run the installer from.
 
@@ -42,11 +50,11 @@ Both controller and the target machines you want to install components on need t
 
 The installation makes use of passwordless SSH and being able to become root on the target nodes in order to perform any install or uninstall task, so you will need to set these up first if you don't already have them working.
 
-## Quick Start Guide
+# Quick Start Guide
 
 This is the minimal way to get two machines working in an HA configuration and serving DNS requests including sinkhole features.
 
-### Config setup
+## Config setup
 
 First, on your controller node, create a config file named (by convention but it doesn't matter) `inventory.yaml`. You can create it anywhere for now. In it, you need to specify your target nodes, the VIP address and a secret. The secret is simply a token used to identify cluster membership for the VIP manager. Default upstream DNS servers and a default blocklist are provided, you can change them later in config.
    
@@ -69,7 +77,7 @@ Below is an example config to get 2 remote nodes installed (accessible at `192.1
             ansible_host: 192.168.0.2
    ```
 
-### Install from inventory
+## Install from inventory
 
 Once you have your inventory (config) you can run the [installer](./installer/README.md) container via the shell script wrapper. This will ask for the location of your inventory file and a "command" (use `install`) to run through the installation on both your nodes in parallel.
 
@@ -87,13 +95,14 @@ dig +short @192.168.0.53 doubleclick.com
 dig +short @192.168.0.53 google.com
 ```
 
-Next, configure your DNS clients with the `vip` address and make sure this address can't be obtained by anything else on your network (i.e. exclude it from any DHCP range). 
+Next, configure your DNS clients with the `vip` address and make sure this address can't be obtained by anything else on your network (i.e. exclude it from any DHCP range). You can test this on the current machine by editing `/etc/resolv.conf` or amending IP config settings.
 
-### Test the HA
+## Test the HA
 
-Open a terminal and get a consistent DNS lookup going against your VIP with something like;
+Open a terminal and get a consistent DNS lookup going against your VIP with this, or equivalent for your shell;
 
 ```bash
+# add the @192.168.0.53 if your machine has not had the VIP set as its resolver yet
 while true; do dig +short google.com; sleep 1; done
 ```
 
@@ -111,17 +120,17 @@ Bring the service back up;
 systemctl --user start dns-node
 ```
 
-.. depending on your VIP manager config, the VIP will either stay where it is or transition back to this node if it is deemed a more worthy primary node.
+.. depending on your setup, the VIP will either stay where it is or transition back to this node if it is deemed a more worthy primary node.
 
 Finally, profit with ad-free browsing and highly available DNS 😊
 
-## Customising Deployments
+# A More Detailed Guide
 
-### Installation PC
+## Installation PC
 
 The installation machine is not part of the runtime, it does not need a connection to the servers once they are installed and running. However, you should keep the inventory safe because if you ever need to make changes to the setup, you change the inventory file, re-run the installation service and it will make only the required changes. 
 
-### DNS Sinkhole Nodes
+## DNS Sinkhole Nodes
 
 This diagram shows a more detailed architecture of `dns-node` components. 
 
@@ -137,14 +146,42 @@ The three containers making up a DNS sinkhole node are:
 2. [blocklist-updater](./blocklist-updater/README.md) is a cron like container that periodically updates the sources for the domains to block. The container does not run unless invoked by its timer component, which will happen daily. Once it has re-generated the blocklist file based on your `blocklist_urls` in config, the container will exit. `dns-node` will reload the blocklist file when it sees that it has changed. The blocklist timer and container run rootless if managed by `podman`
 3. [vip-manager](./vip-manager/README.md) based on [keepalived](https://www.keepalived.org/) is the component that manages the VIP and elections of master nodes among the cluster members. Because of the system and network permissions it requires, this container runs with root privileges. The documentation page for this container covers all of the available configuration options in detail.
 
-### Log Aggregators
+## Log Aggregators
 
 (not yet implemented)
 
 Features will enable the logs and metadata to be stored/parsed for visualisation 
 
-### Visualisation
+## Visualisation
 
 (not yet implemented)
 
 Graphs and metrics of blocked/allowed queries, similar to pi-hole graphs
+
+# HOW-TOs and Cookbooks
+
+Below are a few handy hints for achieving common objectives with your DNS and sinkhole setup. They're in no particular order.
+
+## How can I...
+
+### Temporarily exclude one of my blocklists?
+
+1. Open your `inventory.yaml` file
+2. Comment out the one you want to exclude
+3. Re-run the installer
+
+### Upgrade to newer components?
+
+1. Re-run the installer with your existing inventory. 
+  
+This will update any required containers and config based on the release manifest for your chosen install channel.
+
+### Uninstall all the ha-sinkhole components?
+
+1. Run the installer with your inventory file and the command `uninstall`
+
+### Send metrics to my grafana cloud account?
+
+1. Add your prometheus host, account number and API token to the inventory file
+2. Run the installer
+3. See the details in the [stats-collector README](./stats-collector/README.md#cloud-metrics)
