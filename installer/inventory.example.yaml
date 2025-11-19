@@ -99,6 +99,13 @@ dns_nodes:
       #
       #blocklist_urls:
       #  - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+      
+      # cloud_* are the 3 properties needed to be able to send metrics to your 
+      # Grafana cloud instance. See the README for the stats-collector container
+      # for a comprehensive outline on how to obtain these values.
+      #cloud_instance: prometheus-prod-00-prod-eu-west-1.grafana.net
+      #cloud_user: 1234567
+      #cloud_api_token: glc_eyJvIjoiDPU5M...UAd2rzdd4yIn12
 
   # Hosts in the ha_nodes group with optional overrides in settings
   hosts:

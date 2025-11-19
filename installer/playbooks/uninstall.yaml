@@ -6,10 +6,11 @@
     - ha_sinkhole_common
 
   tasks:
-    - name: 🚀 1. Stop and disable services
+    - name: Stop and disable services
       loop:
         - { name: "vip-manager.service", state: stopped, scope: system }
         - { name: "dns-node.service", state: stopped, scope: user }
+        - { name: "stats-collector.service", state: stopped, scope: user }
         - { name: "blocklist-updater.timer", state: stopped, scope: user }
       loop_control:
         loop_var: current_service
@@ -22,17 +23,24 @@
         service_state: "{{ current_service.state }}"
         service_scope: "{{ current_service.scope }}"
 
-    - name: 🚀 2. Remove files
+    - name: Remove files
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
       loop:
         - "{{ ha_sinkhole_common_systemd_dir }}/vip-manager.container"
         - "{{ ha_sinkhole_common_systemd_dir }}/users/dns-node.container"
+        - "{{ ha_sinkhole_common_systemd_dir }}/users/stats-collector.container"
         - "{{ ha_sinkhole_common_systemd_dir }}/users/blocklist-updater.container"
         - "/etc/systemd/user/blocklist-updater.timer"
-        - "/var/lib/ha-sinkhole"
+        - "{{ ha_sinkhole_common_dir }}"
         - "/var/lib/systemd/linger/{{ ansible_user }}"
       notify:
         - Reload systemd (user)
         - Reload systemd (root)
+
+    - name: Remove Podman secret for Prometheus API token
+      become: false
+      containers.podman.podman_secret:
+        name: prometheus_api_token
+        state: absent

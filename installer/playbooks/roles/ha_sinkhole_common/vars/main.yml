@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT-0
 ---
 # vars file for ha-sinkhole-common
-ha_sinkhole_common_data_dir: "/var/lib/ha-sinkhole/data"
+ha_sinkhole_common_dir: "/var/lib/ha-sinkhole"
 ha_sinkhole_common_systemd_dir: "/etc/containers/systemd"
 ha_sinkhole_common_gitrepo: "https://github.com/davison/ha-sinkhole"
 ha_sinkhole_common_manifest_file: "/releases/download/channel-manifest-artifact/manifest.yaml"
