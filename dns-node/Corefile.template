@@ -3,6 +3,8 @@
     log
     any
     local
+    metadata
+    prometheus
     
     health :8080 {
        lameduck 5s
