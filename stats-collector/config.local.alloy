@@ -1,0 +1,13 @@
+// define local stack
+
+prometheus.scrape "coredns" {
+  targets = [
+    {
+      job         = "ha-sinkhole-dns-node",
+      __address__ = "127.0.0.1:9153",
+      host        = "dns-hepburn",
+    },
+  ]
+  scrape_native_histograms = true  
+  forward_to = [prometheus.remote_write.local_stack.receiver]
+}
