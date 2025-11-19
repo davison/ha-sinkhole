@@ -1,0 +1,13 @@
+[Unit]
+Description=Shared network context for ha-sinkhole dns-node containers
+
+[Pod]
+# healthcheck port for the dns service
+PublishPort=127.0.0.1:8080:8080
+
+# DNS ports that vip-manager will create dnat rules for
+PublishPort=127.0.0.1:1053:1053/udp
+PublishPort=127.0.0.1:1053:1053/tcp
+
+# debug port for stats-collector
+PublishPort=127.0.0.1:12345:12345
