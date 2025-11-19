@@ -20,6 +20,13 @@
         state: restarted
         scope: user
 
+    - name: Restart stats-collector
+      become: false
+      ansible.builtin.systemd:
+        name: stats-collector.service
+        state: restarted
+        scope: user
+
     - name: Restart blocklist-updater timer
       become: false
       ansible.builtin.systemd:
@@ -42,7 +49,7 @@
 
         - name: Create data dir
           ansible.builtin.file:
-            path: "{{ ha_sinkhole_common_data_dir }}"
+            path: "{{ ha_sinkhole_common_dir }}/data"
             state: directory
             owner: "{{ ansible_user }}"
             mode: "0755"
@@ -50,9 +57,26 @@
         - name: Create local hosts aliases
           ansible.builtin.template:
             src: "local.hosts.j2"
-            dest: "{{ ha_sinkhole_common_data_dir }}/local.hosts"
+            dest: "{{ ha_sinkhole_common_dir }}/data/local.hosts"
             owner: "{{ ansible_user }}"
             mode: "0644"
+
+        - name: Create or force update of podman secret for Prometheus API token
+          when: ha_vars.cloud_api_token is defined
+          become: false
+          containers.podman.podman_secret:
+            name: prometheus_api_token
+            state: present
+            data: "{{ ha_vars.cloud_api_token }}"
+            # The 'force: true' ensures the secret is overwritten even
+            # if it already exists, as the contents cannot be compared.
+            force: true
+
+        - name: Ensure secret is removed if token variable is NOT defined
+          when: ha_vars.cloud_api_token is not defined
+          containers.podman.podman_secret:
+            name: prometheus_api_token
+            state: absent
 
     - name: 🎯  Merge host-specific HA variables
       ansible.builtin.set_fact:
@@ -87,15 +111,6 @@
           when: ansible_verbosity > 0 # Only when running with -v
           tags: [manifest]
 
-        - name: Template vip-manager container file
-          ansible.builtin.template:
-            src: "vip-manager.container.j2"
-            dest: "{{ ha_sinkhole_common_systemd_dir }}/vip-manager.container"
-            mode: "0644"
-          notify:
-            - Reload systemd (root)
-            - Restart vip-manager
-
         - name: Copy user systemd timer file
           ansible.builtin.copy:
             src: "blocklist-updater.timer"
@@ -105,6 +120,25 @@
             - Reload systemd (user)
             - Restart blocklist-updater timer
 
+        - name: Copy pod file
+          ansible.builtin.copy:
+            src: "ha-node.pod"
+            dest: "{{ ha_sinkhole_common_systemd_dir }}/users/ha-node.pod"
+            mode: "0644"
+          notify:
+            - Reload systemd (user)
+            - Restart dns-node
+            - Restart stats-collector
+
+        - name: Template vip-manager container file
+          ansible.builtin.template:
+            src: "vip-manager.container.j2"
+            dest: "{{ ha_sinkhole_common_systemd_dir }}/vip-manager.container"
+            mode: "0644"
+          notify:
+            - Reload systemd (root)
+            - Restart vip-manager
+
         - name: Template dns-node container file
           ansible.builtin.template:
             src: "dns-node.container.j2"
@@ -113,6 +147,15 @@
           notify:
             - Reload systemd (user)
             - Restart dns-node
+
+        - name: Template stats-collector container file
+          ansible.builtin.template:
+            src: "stats-collector.container.j2"
+            dest: "{{ ha_sinkhole_common_systemd_dir }}/users/stats-collector.container"
+            mode: "0644"
+          notify:
+            - Reload systemd (user)
+            - Restart stats-collector
 
         - name: Template blocklist-updater container file
           ansible.builtin.template:

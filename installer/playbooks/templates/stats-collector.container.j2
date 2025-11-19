@@ -1,5 +1,6 @@
 [Unit]
 Description=HA Sinkhole Stats Collector
+PartOf=ha-node-pod.service
 Wants=network-online.target
 After=network-online.target
 
@@ -8,12 +9,10 @@ Pod=ha-node.pod
 Image=ghcr.io/davison/ha-sinkhole/stats-collector:{{ ha_sinkhole_manifest[install_channel]['stats-collector'] | default('MISSING_VERSION') }}
 Environment=PROMETHEUS_HOST={{ ha_vars.cloud_instance | default('') }}
 Environment=PROMETHEUS_ACCOUNT={{ ha_vars.cloud_user | default('') }}
+Secret=prometheus_api_token,type=mount,target=/run/credentials/prometheus_api_token
 LogDriver=journald
 
 [Service]
-# Make the secret available at /run/credentials/stats-collector.container/prometheus_api_token inside the Unit
-# and at /run/credentials/prometheus_api_token inside the container
-LoadCredential=prometheus_api_token:{{ ha_sinkhole_common_dir }}/prometheus_api_token
 Restart=always
 
 [Install]

@@ -1,5 +1,6 @@
 [Unit]
 Description=HA Sinkhole DNS Node
+PartOf=ha-node-pod.service
 Wants=network-online.target
 After=network-online.target
 # Ensures the blocklist file exists before this service starts for the first time
@@ -7,16 +8,14 @@ Requires=blocklist-updater.service
 After=blocklist-updater.service
 
 [Container]
+Pod=ha-node.pod
 Image=ghcr.io/davison/ha-sinkhole/dns-node:{{ ha_sinkhole_manifest[install_channel]['dns-node'] | default('MISSING_VERSION') }}
 Environment=LOCAL_DOMAIN={{ ha_vars.local_domain | default('') }}
 Environment=LOCAL_UPSTREAM_DNS={{ ha_vars.local_upstream_dns | default('') }}
 Environment=UPSTREAM_DNS={{ ha_vars.upstream_dns | default('') | join(' ') }}
 Environment=TRUSTED_NETS={{ ha_vars.trusted_nets | default('') | join(' ') }}
-Volume=/var/lib/ha-sinkhole/data:/data:Z
+Volume={{ ha_sinkhole_common_dir }}/data:/data:Z
 LogDriver=journald
-PublishPort=1053:1053/udp
-PublishPort=1053:1053/tcp
-PublishPort=8080:8080
 
 [Service]
 Restart=always

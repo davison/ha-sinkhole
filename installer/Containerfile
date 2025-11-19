@@ -10,6 +10,7 @@ LABEL org.opencontainers.image.version="$BUILD_VERSION"
 ENV USER=ansible
 ENV SSH_AUTH_SOCK=/tmp/ssh-agent.sock
 RUN apk add --no-cache ansible-core openssh-client-default bash
+RUN ansible-galaxy collection install containers.podman
 RUN addgroup $USER && adduser --disabled-password --home "/home/$USER" --ingroup "$USER" $USER
 
 USER $USER
