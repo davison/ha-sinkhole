@@ -9,7 +9,7 @@ container image directories, and bumps their 'VERSION' file
 based on conventional commit messages.
 
 It respects manual bumps: if a user manually bumps a version
-higher than what the commits would suggest, it leaves it alone.
+(or creates a new one), the script skips automation for that file.
 
 Requires 'semver' library: pip install semver
 """
@@ -46,7 +46,7 @@ class BumpLevel(IntEnum):
 
 # --- Git Helper Functions ---
 
-def run_git_command(cmd: list[str]) -> str:
+def run_git_command(cmd: list[str], allow_error: bool = False) -> str:
     """Runs a git command and returns its stdout."""
     try:
         result = subprocess.run(
@@ -58,6 +58,8 @@ def run_git_command(cmd: list[str]) -> str:
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
+        if allow_error:
+            raise e
         print(f"Error running git command: {' '.join(cmd)}", file=sys.stderr)
         print(f"STDERR: {e.stderr}", file=sys.stderr)
         sys.exit(1)
@@ -68,7 +70,7 @@ def get_changed_files(base_ref: str, head_ref: str, directory: Path) -> list[str
     cmd = ["diff", "--name-only", base_ref, head_ref, "--", str(directory)]
     all_files = run_git_command(cmd).splitlines()
     
-    # Filter out documentation files, mirroring publish-images.yml
+    # Filter out documentation files
     return [
         f for f in all_files 
         if not (f.endswith(".md") or f.endswith("README.md"))
@@ -77,7 +79,6 @@ def get_changed_files(base_ref: str, head_ref: str, directory: Path) -> list[str
 
 def get_commit_logs(base_ref: str, head_ref: str, directory: Path) -> str:
     """Get all commit messages that touched a given directory."""
-    # We use a rare delimiter to safely split commits
     delimiter = "----COMMIT-DELIMITER----"
     cmd = [
         "log",
@@ -93,8 +94,10 @@ def get_base_version(base_ref: str, version_file: Path) -> str:
     If the file doesn't exist, return '0.0.0'.
     """
     try:
-        return run_git_command(["show", f"{base_ref}:{version_file}"])
-    except subprocess.CalledProcessError as e:
+        # We pass allow_error=True so the script doesn't sys.exit(1)
+        # if the file doesn't exist on the base branch.
+        return run_git_command(["show", f"{base_ref}:{version_file}"], allow_error=True)
+    except subprocess.CalledProcessError:
         # This will happen if the file is new in this PR
         print(f"File {version_file} not found on base branch. Assuming 0.0.0")
         return "0.0.0"
@@ -103,7 +106,6 @@ def get_base_version(base_ref: str, version_file: Path) -> str:
 
 def main():
     try:
-        # 'semver' is a required dependency
         import semver
     except ImportError:
         print("Error: 'semver' library not found.", file=sys.stderr)
@@ -119,8 +121,6 @@ def main():
 
     print(f"Checking for bumps between {base_ref} and {head_ref}...\n")
     
-    # Find all directories with a Containerfile AND a VERSION file
-    # (as defined in the user's prompt)
     root = Path(".")
     image_dirs = [
         p.parent
@@ -135,8 +135,14 @@ def main():
         version_file = directory / "VERSION"
         print(f"--- Processing: {scope} ---")
 
-        # 1. Check for relevant (non-doc) changes
         changed_files = get_changed_files(base_ref, head_ref, directory)
+
+        # CRITICAL FIX: Check for manual version changes first
+        # changed_files contains paths relative to root (e.g. "dir/VERSION")
+        if str(version_file) in changed_files:
+            print(f"Manual change to {version_file} detected. Skipping autobump.")
+            continue
+
         if not changed_files:
             print("No non-documentation changes found. Skipping.")
             continue
@@ -152,21 +158,17 @@ def main():
             if not commit_msg:
                 continue
 
-            # Check for Major
             if (
                 re.search(MAJOR_REGEX, commit_msg, re.M)
                 or re.search(BREAKING_REGEX, commit_msg, re.M)
             ):
-                # Check if the scope matches our directory
                 if re.search(f"(feat|fix)\({scope}\)!:", commit_msg) or re.search(BREAKING_REGEX, commit_msg, re.M):
                    highest_bump = BumpLevel.MAJOR
                 
-            # Check for Minor (if not already major)
             if highest_bump < BumpLevel.MAJOR:
                 if re.search(f"feat\({scope}\):", commit_msg):
                     highest_bump = max(highest_bump, BumpLevel.MINOR)
             
-            # Check for Patch (if not already minor or major)
             if highest_bump < BumpLevel.MINOR:
                 if re.search(f"fix\({scope}\):", commit_msg):
                     highest_bump = max(highest_bump, BumpLevel.PATCH)
@@ -193,13 +195,12 @@ def main():
             target_v = base_v.bump_major()
         elif highest_bump == BumpLevel.MINOR:
             target_v = base_v.bump_minor()
-        else: # Patch
+        else: 
             target_v = base_v.bump_patch()
 
         print(f"Base: {base_v} | PR: {pr_v} | Target: {target_v}")
 
         # 5. Compare and write file
-        # This is the crucial logic you asked about.
         if pr_v < target_v:
             print(f"Bumping {scope}: {pr_v} -> {target_v}")
             version_file.write_text(f"{target_v}\n")
@@ -211,7 +212,6 @@ def main():
 
     print("---")
     
-    # 6. Set GitHub Action output
     if "GITHUB_OUTPUT" in os.environ:
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:
             f.write(f"commit_made={str(commit_made).lower()}\n")
