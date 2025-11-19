@@ -12,7 +12,6 @@
 - [A More Detailed Guide](#a-more-detailed-guide)
   - [Installation PC](#installation-pc)
   - [DNS Sinkhole Nodes](#dns-sinkhole-nodes)
-  - [Log Aggregators](#log-aggregators)
   - [Visualisation](#visualisation)
 - [HOW-TOs and Cookbooks](#how-tos-and-cookbooks)
   - [How can I...](#how-can-i)
@@ -28,7 +27,7 @@ The project is inspired by the fantastic [pi-hole](https://github.com/pi-hole/pi
 
 I've used pi-hole for years and couldn't live without that functionality on my network, but it's not easy to make it highly available and I really wanted that. There are several guides available for making pi-hole HA, but they're fragile, bolt-on solutions which are unsupported by the pi-hole project.
 
-`ha-sinkhole` was created specifically to solve that problem. It addresses that single concern and does not, by design, offer many of the existing pi-hole features (notably DHCP). At present the visualisation features and possible future web interface are unimplemented, but that will change once the core HA sinkhole feature is working and stable. Metric storage and visualisation will be enabled via open source components of the [Grafana](https://grafana.com) eco-system meaning you can run them locally or connect to your Grafana cloud account and manage them there.
+`ha-sinkhole` was created specifically to solve that problem. It addresses that single concern and does not, by design, offer many of the existing pi-hole features (notably DHCP). Metric storage and visualisation is enabled via open source components of the [Grafana](https://grafana.com) eco-system and you can run them locally or connect to your Grafana cloud account and manage them there. Currently there is an early version of metrics available but only to cloud hosted grafana/prometheus.
 
 ![overview](.files/ha-sinkhole-architecture-overview.drawio.svg "Architecture Overview")
 
@@ -136,27 +135,23 @@ This diagram shows a more detailed architecture of `dns-node` components.
 
 ![dns-nodes](.files/ha-sinkhole-architecture-dns-node.drawio.svg "DNS Node Detailed Architecture")
 
-Each DNS sinkhole node is made up from 3 containers, each performing a specific function. All containers are configured through the installation config file that you created as part of the Quick Start guide above. Or if you haven't yet, you may want to create one from the [example inventory file](./installer/inventory.example.yaml) instead.
+A DNS sinkhole node is made up from four containers, each performing a specific function. All containers are configured through the installation config file that you created as part of the Quick Start guide above. Or if you haven't yet, you may want to create one from the [example inventory file](./installer/inventory.example.yaml) instead.
 
 The installer will install `stable` versions of containers and components by default. If you want the bleeding edge, add or change the `install_channel` to `edge` in your inventory file.
 
-The three containers making up a DNS sinkhole node are: 
+The containers making up a DNS sinkhole node are: 
 
-1. [dns-node](./dns-node/README.md) is the DNS resolver and is built on top of [coredns](https://coredns.io/), a very fast, reliable and highly configurable resolver. The main job of `dns-node` is to consume the blocklist file and return the sinkhole address `0.0.0.0` for any domain in its list. If the domain being queried is not in the list, it will pass the query to one of potentially several upstream resolvers instead and return any answer they give. The documentation page for this container covers all of the available configuration options in detail.
-2. [blocklist-updater](./blocklist-updater/README.md) is a cron like container that periodically updates the sources for the domains to block. The container does not run unless invoked by its timer component, which will happen daily. Once it has re-generated the blocklist file based on your `blocklist_urls` in config, the container will exit. `dns-node` will reload the blocklist file when it sees that it has changed. The blocklist timer and container run rootless if managed by `podman`
-3. [vip-manager](./vip-manager/README.md) based on [keepalived](https://www.keepalived.org/) is the component that manages the VIP and elections of master nodes among the cluster members. Because of the system and network permissions it requires, this container runs with root privileges. The documentation page for this container covers all of the available configuration options in detail.
+1. [blocklist-updater](./blocklist-updater/README.md) is a cron like container that periodically updates the sources for the domains to block. The container does not run unless invoked by its timer component, which will happen daily. Once it has re-generated the blocklist file based on your `blocklist_urls` in config, the container will exit. `dns-node` will reload the blocklist file when it sees that it has changed. The blocklist timer and container run rootless if managed by `podman`
+2. [dns-node](./dns-node/README.md) is the DNS resolver and is built on top of [coredns](https://coredns.io/), a very fast, reliable and highly configurable resolver. The main job of `dns-node` is to consume the blocklist file and return the sinkhole address `0.0.0.0` for any domain in its list. If the domain being queried is not in the list, it will pass the query to one of potentially several upstream resolvers instead and return any answer they give. The documentation page for this container covers all of the available configuration options in detail.
+3. [stats-collector](./stats-collector/README.md) built on grafana [alloy](https://grafana.com/docs/alloy) scrapes the prometheus metrics from the dns-node and ships them to the storage and visualisation endpoint. This can be a local setup or a cloud based instance.
 
-## Log Aggregators
+4. [vip-manager](./vip-manager/README.md) based on [keepalived](https://www.keepalived.org/) is the component that manages the VIP and elections of master nodes among the cluster members. Because of the system and network permissions it requires, this container runs with root privileges. The documentation page for this container covers all of the available configuration options in detail.
 
-(not yet implemented)
-
-Features will enable the logs and metadata to be stored/parsed for visualisation 
+  `dns-node` and `stats-collector` share a pod, or network context, that allows them to tightly couple and communicate with each other on the loopback address. The pod exposes the ports that other services use, principally the healthcheck port and the DNS unprivileged port, both of which are assumed by `dns-node`. 
 
 ## Visualisation
 
-(not yet implemented)
-
-Graphs and metrics of blocked/allowed queries, similar to pi-hole graphs
+Currently an early preview of metrics and visualisation is available if you have a cloud instance of grafana/prometheus. Only raw metrics are sent which you should be able to see in your prometheus explorer, dashboards will follow soon.
 
 # HOW-TOs and Cookbooks
 
