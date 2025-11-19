@@ -1,0 +1,17 @@
+FROM docker.io/grafana/alloy:v1.11.3
+
+ARG BUILD_VERSION
+
+LABEL org.opencontainers.image.source=https://github.com/davison/ha-sinkhole/stats-collector
+LABEL org.opencontainers.image.description="Collector for metrics and logs"
+LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.version="$BUILD_VERSION"
+
+COPY config.cloud.alloy /etc/alloy/
+COPY config.local.alloy /etc/alloy/
+
+CMD ["run", \
+     "--server.http.listen-addr=0.0.0.0:12345", \
+     "--storage.path=/var/lib/alloy/data", \
+     "--disable-reporting=true", \
+     "/etc/alloy/config.cloud.alloy"]

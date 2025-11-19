@@ -1,0 +1,22 @@
+
+prometheus.remote_write "cloud_prom" {
+  endpoint {
+    url = "https://" + sys.env("PROMETHEUS_HOST") + "/api/prom/push"
+    basic_auth {
+      username = sys.env("PROMETHEUS_ACCOUNT") 
+      password_file = "/run/credentials/prometheus_api_token"
+    }
+  }
+}
+
+prometheus.scrape "coredns" {
+  targets = [
+    {
+      job         = "ha-sinkhole-dns-node",
+      __address__ = "127.0.0.1:9153",
+      host        = "dns-hepburn",
+    },
+  ]
+  scrape_native_histograms = true  
+  forward_to = [prometheus.remote_write.cloud_prom.receiver]
+}
