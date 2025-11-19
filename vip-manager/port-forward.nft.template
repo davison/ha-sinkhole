@@ -3,12 +3,17 @@
 # from port 53 to the internally exposed 1053
 #
 
-# 1. Create a new table for the 'ip' family (IPv4)
-add table ip dns_port_forward
+# Ensure the table exists. Defining an empty block is idempotent
+table ip dns_port_forward { }
 
-# 2. Add a 'prerouting' chain to this table for DNAT
-add chain ip dns_port_forward dns_dnat { type nat hook prerouting priority dstnat; }
+# Flush it safely. This removes the old chain and rules.
+flush table ip dns_port_forward
 
-# 3. Add the rules to the chain, matching by IP address
-add rule ip dns_port_forward dns_dnat ip daddr "$VIRTUAL_IP" tcp dport 53 dnat to :1053
-add rule ip dns_port_forward dns_dnat ip daddr "$VIRTUAL_IP" udp dport 53 dnat to :1053
+# Re-create the chain and add the rules.
+table ip dns_port_forward {
+    chain dns_dnat {
+        type nat hook prerouting priority dstnat;
+        ip daddr $VIRTUAL_IP tcp dport 53 dnat to :1053
+        ip daddr $VIRTUAL_IP udp dport 53 dnat to :1053
+    }
+}
