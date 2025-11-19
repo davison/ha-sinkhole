@@ -44,6 +44,9 @@ jobs:
             blocklist-updater:
                 - 'blocklist-updater/**'
                 - '!**/*.md'
+            stats-collector:
+                - 'stats-collector/**'
+                - '!**/*.md'
             installer:
                 - 'installer/**'
                 - '!**/*.md'
