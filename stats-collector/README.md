@@ -44,11 +44,11 @@ Obtaining the API token needs some work 😅
 
 If you lose the token, you'll need to follow steps 7 to 10 again to create a new one.
 
-When the installer runs, it will copy your token to a file in the `$HOME/ha-sinkhole` directory of the user you're using on the remote nodes and `chmod 600` the file.
+When the installer runs, it will copy your token to a file in the `/var/lib/ha-sinkhole` directory of the remote nodes and both `chown` and `chmod 600` the file.
 
 At runtime on the node, `systemd` loads the file securely via a line in the systemd unit 
 ```ini
-LoadCredential=prometheus_api_token:%h/ha-sinkhole/prometheus_api_token
+LoadCredential=prometheus_api_token:/var/lib/ha-sinkhole/prometheus_api_token
 ```
 
 `systemd` and `podman` take care of ensuring the secret is accessible only to the user running the container and is never visible on disk or via environment variables. It will not be visible in the output of `podman inspect`, `systemd --user <unit> show` or `ps`.
