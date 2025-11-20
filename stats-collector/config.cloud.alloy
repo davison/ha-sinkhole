@@ -1,22 +1,29 @@
 
-prometheus.remote_write "cloud_prom" {
+prometheus.remote_write "prometheus_cloud" {
   endpoint {
     url = "https://" + sys.env("PROMETHEUS_HOST") + "/api/prom/push"
     basic_auth {
       username = sys.env("PROMETHEUS_ACCOUNT") 
-      password_file = "/run/credentials/prometheus_api_token"
+      password_file = "/run/secrets/prometheus_api_token"
     }
   }
 }
 
-prometheus.scrape "coredns" {
-  targets = [
-    {
-      job         = "ha-sinkhole-dns-node",
-      __address__ = "127.0.0.1:9153",
-      host        = "dns-hepburn",
-    },
-  ]
-  scrape_native_histograms = true  
-  forward_to = [prometheus.remote_write.cloud_prom.receiver]
+discovery.relabel "metrics_integrations_integrations_coredns" {
+  targets = [{	
+    __address__ = "127.0.0.1:9153",
+    cluster     = "ha-sinkhole"
+  }]
+
+  rule {
+    target_label = "instance"
+    replacement  = sys.env("REAL_HOST")
+  }
+}
+
+prometheus.scrape "metrics_integrations_integrations_coredns" {
+  targets                   = discovery.relabel.metrics_integrations_integrations_coredns.output
+  scrape_native_histograms  = true  
+  forward_to                = [prometheus.remote_write.prometheus_cloud.receiver]
+  job_name                  = "integrations/coredns"
 }
