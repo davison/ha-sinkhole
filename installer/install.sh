@@ -34,17 +34,22 @@ if ! command -v $container_cmd &> /dev/null; then
     error_exit "Neither podman nor docker is installed. Please install one of them to proceed."
 fi
 
+$container_cmd pull "$installer_container"
+
 if [[ -z "${SSH_AUTH_SOCK:-}" || ! -S $SSH_AUTH_SOCK ]]; then
     error_exit "SSH_AUTH_SOCK is not set or is not accessible. Please ensure your SSH agent is running, your key is added and the environment variable is set."
 fi
 
-while getopts ":f:c:h" opt; do
+while getopts ":f:c:lh" opt; do
     case "${opt}" in
         f)
             inventory_file="${OPTARG}"
             ;;
         c)
             playbook="${OPTARG}"
+            ;;
+        l)
+            installer_container="localhost/ha-sinkhole/installer:local"
             ;;
         h)
             usage 
@@ -97,7 +102,6 @@ fi
 # --- 6. Execution and Output ---
 echo Running installer...
 
-$container_cmd pull "$installer_container"
 $container_cmd run \
     --rm \
     --net=host \
