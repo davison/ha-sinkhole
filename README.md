@@ -78,10 +78,10 @@ Below is an example config to get 2 remote nodes installed (accessible at `192.1
 
 ## Install from inventory
 
-Once you have your inventory (config) you can run the [installer](./installer/README.md) container via the shell script wrapper. This will ask for the location of your inventory file and a "command" (use `install`) to run through the installation on both your nodes in parallel.
+Once you have your inventory (config) you can run the [installer](./installer/README.md) container via the shell script wrapper. This will ask for the location of your inventory file and then run through the installation on both your nodes in parallel.
 
 ```bash
-curl github.com/davison/ha-sinkhole/blob/main/installer/install.sh | bash
+curl github.com/davison/ha-sinkhole/blob/main/install.sh | bash
 ```
 
 Test your service with something like:
