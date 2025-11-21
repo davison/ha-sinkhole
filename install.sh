@@ -6,6 +6,14 @@
 # -------------------------------------------------------------------------
 set -eou pipefail
 
+readonly green='\033[0;32m'
+readonly red='\033[0;31m'
+readonly yellow='\033[0;33m'
+readonly bold='\033[1m'
+readonly reset='\033[0m' # No Color
+readonly check_mark="${green}✔${reset}"
+readonly cross_mark="${red}✘${reset}"
+
 # Internal variables
 inventory_file=""
 playbook="install"
@@ -14,11 +22,11 @@ manifest_url="https://github.com/davison/ha-sinkhole/releases/download/channel-m
 installer_container=""  # Will be set after parsing inventory and fetching manifest
 
 error_exit() {
-    printf "🔴 ERROR: $1\n" >&2
+    printf "${cross_mark} ERROR: $1\n" >&2
     exit 1
 }
 ok() {
-    printf "🟢 $1\n" >&1
+    printf "${check_mark} $1\n" >&1
 }
 
 usage() {
@@ -36,12 +44,12 @@ get_channel_from_inventory() {
     
     # Parse channel from inventory, default to 'stable' if not found
     local channel
-    channel=$(grep -E "^\s*install_channel:" "$inventory" | awk '{print $2}' | tr -d '"' | head -n1)
+    channel=$(grep -E "^\s*install_channel:" "${inventory}" | awk '{print $2}' | tr -d '"' | head -n1)
     
-    if [[ -z "$channel" ]]; then
+    if [[ -z "${channel}" ]]; then
         echo "stable"  # Default if not specified
     else
-        echo "$channel"
+        echo "${channel}"
     fi
 }
 
@@ -52,12 +60,12 @@ get_installer_version() {
     # Fetch manifest
     local manifest
     if ! manifest=$(curl -sSfL "$manifest_url" 2>/dev/null); then
-        error_exit "Failed to fetch manifest from $manifest_url"
+        error_exit "Failed to fetch manifest from ${bold}${manifest_url}${reset}"
     fi
     
     # Parse installer version from manifest
     local version
-    version=$(echo "$manifest" | awk -v chan="$channel:" '
+    version=$(echo "$manifest" | awk -v chan="${channel}:" '
         $0 ~ chan { in_channel=1 }
         in_channel && /installer:/ { 
             gsub(/[" ]/, "", $2)
@@ -67,12 +75,13 @@ get_installer_version() {
     ')
     
     if [[ -z "$version" ]]; then
-        error_exit "Could not find installer version for channel '$channel' in manifest"
+        error_exit "Could not find installer version for channel ${bold}${channel}${reset} in manifest"
     fi
     
-    echo "$version"
+    echo "${version}"
 }
 
+printf "\n  ${yellow}${bold}Welcome to ha-sinkhole 🙂${reset}\n\n"
 ok "Checking environment..."
 
 if ! command -v podman &> /dev/null; then
@@ -84,7 +93,7 @@ if ! command -v $container_cmd &> /dev/null; then
 fi
 
 if [[ -z "${SSH_AUTH_SOCK:-}" || ! -S $SSH_AUTH_SOCK ]]; then
-    error_exit "SSH_AUTH_SOCK is not set or is not accessible. Please ensure your SSH agent is running, your key is added and the environment variable is set."
+    error_exit "${bold}SSH_AUTH_SOCK${reset} is not set or is not accessible. Please ensure your SSH agent is running, your key is added and the environment variable is set."
 fi
 
 while getopts ":f:c:lh" opt; do
@@ -117,7 +126,7 @@ shift "$((OPTIND-1))"
 # Prompt for inventory file if not provided
 if [[ -z "$inventory_file" ]]; then
     while true; do
-        read -r -p "🟡 Inventory file path: " input_file
+        read -r -p $'\e[1;33m>\e[0m Inventory file path: ' input_file < /dev/tty
 
         # Check if the input is empty
         if [[ -z "$input_file" || "$input_file" =~ ^[[:space:]]*$ ]]; then
@@ -131,24 +140,23 @@ fi
 
 # Validate inventory file exists
 if [[ ! -f "$inventory_file" ]]; then
-    error_exit "Inventory file not found: $inventory_file"
+    error_exit "Inventory file not found: ${bold}${inventory_file}${reset}"
 fi
 
 # Set installer container version from manifest (unless using local)
 if [[ -z "$installer_container" ]]; then
-    ok "looking up install channel..."
     channel=$(get_channel_from_inventory "$inventory_file")
-    ok "Using channel: $channel"
-    ok "Finding installer version from manifest..."
+    ok "Using install channel: ${bold}${channel}${reset}"
+    ok "Finding installer version from release manifest..."
     installer_version=$(get_installer_version "$channel")
     installer_container="ghcr.io/davison/ha-sinkhole/installer:${installer_version}"
 fi
 
-ok "Pulling installer container: $installer_version..."
-$container_cmd pull "$installer_container" > /dev/null 2>&1 || error_exit "Failed to pull installer container: $installer_container"
+ok "Pulling installer container: ${bold}${installer_version}${reset}..."
+$container_cmd pull "$installer_container" > /dev/null 2>&1 || error_exit "Failed to pull installer container: ${bold}${installer_container}${reset}"
 
-ok Running installer...
-exit 0
+logfile=$(mktemp /tmp/ha-sinkhole-log.XXXXXX)
+ok "Running remote ${playbook}, this may take a minute or two. The full log is at ${bold}$logfile${reset}\n"
 
 $container_cmd run \
     --rm \
@@ -158,6 +166,11 @@ $container_cmd run \
     -v "$inventory_file":/home/ansible/inventory.yaml \
     -v "$SSH_AUTH_SOCK":/tmp/ssh-agent.sock \
     $installer_container \
-    playbooks/"$playbook".yaml
+    playbooks/"$playbook".yaml > "$logfile" 2>&1 || {
+        error_exit "Installation failed. Please check the log at ${bold}$logfile${reset} for details."
+    }
+
+awk '/PLAY RECAP/{p=1; next} p' $logfile
+ok "Success! 🎉\n"
 
 exit 0

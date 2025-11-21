@@ -81,8 +81,11 @@ Below is an example config to get 2 remote nodes installed (accessible at `192.1
 Once you have your inventory (config) you can run the [installer](./installer/README.md) container via the shell script wrapper. This will ask for the location of your inventory file and then run through the installation on both your nodes in parallel.
 
 ```bash
-curl github.com/davison/ha-sinkhole/blob/main/install.sh | bash
+curl -sL https://bit.ly/ha-install | bash
 ```
+
+You should hopefully see something like..
+![installer output](.files/installer-output.png)
 
 Test your service with something like:
 
@@ -174,6 +177,10 @@ This will update any required containers and config based on the release manifes
 ### Uninstall all the ha-sinkhole components?
 
 1. Run the installer with your inventory file and the command `uninstall`
+   ```bash
+   curl -sL https://bit.ly/ha-install | bash -s -- \
+     -f /path/to/inventory.yaml -c uninstall
+   ```
 
 ### Send metrics to my grafana cloud account?
 
