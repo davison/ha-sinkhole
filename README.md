@@ -81,13 +81,14 @@ Below is an example config to get 2 remote nodes installed (accessible at `192.1
 Once you have your inventory (config) you can run the [installer](./installer/README.md) container via the shell script wrapper. This will ask for the location of your inventory file and then run through the installation on both your nodes in parallel.
 
 ```bash
+# re-directs to the raw install.sh file in this repo
 curl -sL https://bit.ly/ha-install | bash
 ```
 
 You should hopefully see something like..
 ![installer output](.files/installer-output.png)
 
-Test your service with something like:
+If you see any errors, check the contents of the log for further details. If successful, you should now be able to test your service with something like:
 
 ```bash
 # test blocking
@@ -97,7 +98,7 @@ dig +short @192.168.0.53 doubleclick.com
 dig +short @192.168.0.53 google.com
 ```
 
-Next, configure your DNS clients with the `vip` address and make sure this address can't be obtained by anything else on your network (i.e. exclude it from any DHCP range). You can test this on the current machine by editing `/etc/resolv.conf` or amending IP config settings.
+Next, configure your DNS clients with the `vip` address and make sure this address can't be obtained by anything else on your network (i.e. exclude it from any DHCP range). You can test this on the current machine by editing `/etc/resolv.conf` or otherwise amending IP config settings for your particular OS or environment.
 
 ## Test the HA
 
@@ -130,7 +131,11 @@ Finally, profit with ad-free browsing and highly available DNS 😊
 
 ## Installation PC
 
-The installation machine is not part of the runtime, it does not need a connection to the servers once they are installed and running. However, you should keep the inventory safe because if you ever need to make changes to the setup, you change the inventory file, re-run the installation service and it will make only the required changes. 
+The installation machine is not part of the runtime, it does not need a connection to the servers once they are installed and running. However, you should keep the inventory safe because if you ever need to make changes to the setup, you can change the inventory file, re-run the [installation service](./installer/README.md) and it will make only the required changes. 
+
+```bash
+curl -sL https://bit.ly/ha-install | bash -s -- -f /path/to/inventory.yaml
+```
 
 ## DNS Sinkhole Nodes
 
