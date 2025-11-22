@@ -23,6 +23,12 @@ installer_container=""  # Will be set after parsing inventory and fetching manif
 
 error_exit() {
     printf "${cross_mark} ERROR: $1\n" >&2
+    if [[ -n "${logfile:-}" && -f "${logfile:-}" ]]; then
+        read -r -e -p "  Would you like to review the log file (y/N)? " review < /dev/tty
+        if [[ "${review,,}" == "y" || "${review,,}" == "yes" ]]; then
+            less "${logfile}"
+        fi
+    fi
     exit 1
 }
 ok() {
@@ -81,7 +87,11 @@ get_installer_version() {
     echo "${version}"
 }
 
-printf "\n  ${yellow}${bold}Welcome to ha-sinkhole 🙂${reset}\n\n"
+trap 'error_exit "SIGINT (Ctrl-C) detected."' SIGINT
+trap 'error_exit "SIGTERM detected."' SIGTERM
+trap 'error_exit "An unknown or unexpected error occurred."' ERR
+
+printf "\n🌐  ${bold}Welcome to ha-sinkhole 🌐${reset}\n\n"
 ok "Checking environment..."
 
 if ! command -v podman &> /dev/null; then
@@ -126,21 +136,17 @@ shift "$((OPTIND-1))"
 # Prompt for inventory file if not provided
 if [[ -z "$inventory_file" ]]; then
     while true; do
-        read -r -p $'\e[1;33m>\e[0m Inventory file path: ' input_file < /dev/tty
+        read -r -e -p $'\e[33m↪ Inventory file path:\e[0m ' input_file < /dev/tty
+        input_file="${input_file/#\~/$HOME}"  # Expand ~ to $HOME
 
         # Check if the input is empty
-        if [[ -z "$input_file" || "$input_file" =~ ^[[:space:]]*$ ]]; then
+        if [[ -z "$input_file" || "$input_file" =~ ^[[:space:]]*$ || ! -f "$input_file" ]]; then
             continue
         fi
         
         inventory_file="$input_file"
         break
     done
-fi
-
-# Validate inventory file exists
-if [[ ! -f "$inventory_file" ]]; then
-    error_exit "Inventory file not found: ${bold}${inventory_file}${reset}"
 fi
 
 # Set installer container version from manifest (unless using local)
@@ -167,10 +173,21 @@ $container_cmd run \
     -v "$SSH_AUTH_SOCK":/tmp/ssh-agent.sock \
     $installer_container \
     playbooks/"$playbook".yaml > "$logfile" 2>&1 || {
-        error_exit "Installation failed. Please check the log at ${bold}$logfile${reset} for details."
+        error_exit "Installation failed."
     }
 
-awk '/PLAY RECAP/{p=1; next} p' $logfile
+# check common issues
+if grep -q "UNREACHABLE!" "${logfile}"; then
+    error_exit "Some hosts were unreachable during installation."
+fi
+if grep -q "FAILED!" "${logfile}"; then
+    error_exit "Some tasks failed during installation."
+fi
+if grep -q "Unable to parse /home/ansible/inventory.yaml" "${logfile}"; then
+    error_exit "Inventory could not be parsed, please check your ${bold}${inventory_file}${reset} file."
+fi
+
+awk '/PLAY RECAP/{p=1; next} p' ${logfile}
 ok "Success! 🎉\n"
 
 exit 0
