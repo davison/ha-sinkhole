@@ -98,8 +98,6 @@ dig +short @192.168.0.53 doubleclick.com
 dig +short @192.168.0.53 google.com
 ```
 
-Next, configure your DNS clients with the `vip` address and make sure this address can't be obtained by anything else on your network (i.e. exclude it from any DHCP range). You can test this on the current machine by editing `/etc/resolv.conf` or otherwise amending IP config settings for your particular OS or environment.
-
 ## Test the HA
 
 Open a terminal and get a consistent DNS lookup going against your VIP with this, or equivalent for your shell;
@@ -124,6 +122,8 @@ systemctl --user start dns-node
 ```
 
 .. depending on your setup, the VIP will either stay where it is or transition back to this node if it is deemed a more worthy primary node.
+
+If everything looks good, configure your DNS clients with the `vip` address and make sure this address can't be obtained by anything else on your network (i.e. exclude it from any DHCP range). You can test this on just the current machine by editing `/etc/resolv.conf` or otherwise amending IP config / DNS settings for your particular OS or environment.
 
 Finally, profit with ad-free browsing and highly available DNS 😊
 
