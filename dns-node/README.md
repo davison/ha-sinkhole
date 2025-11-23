@@ -29,18 +29,16 @@ The `dns-node` container is configured through the following setings defined in 
     ```yaml
     dns_nodes:
       vars:
-        ha_vars:
-          upstream_dns:
-            - 1.1.1.1
-            - 9.9.9.9
+        upstream_dns:
+          - 1.1.1.1
+          - 9.9.9.9
     ```
 *   `local_domain` is your internal LAN or office domain that you may have DHCP providing addresses for and which you want to be able to resolve hostnames. For example, `mydomain.local`. This would normally be a domain that is not resolvable by public upstream servers and requires an internal server (your DHCP or router/gateway typically) to resolve the hosts.
 
     ```yaml
     dns_nodes:
       vars:
-        ha_vars:
-          local_domain: mydomain.local
+        local_domain: mydomain.local
     ```
     Any requests for hostnames that the server receives with no domain on them will have the `local_domain` appended to them and sent to the `local_upstream_dns` resolver which you should also configure along with this setting.
 
@@ -50,28 +48,25 @@ The `dns-node` container is configured through the following setings defined in 
     ```yaml
     dns_nodes:
       vars:
-        ha_vars:
-          local_upstream_dns: 192.168.0.1
+        local_upstream_dns: 192.168.0.1
     ```
 
 * `local_hosts` is a list of IP:hostname mappings, each line being in the same format that would be valid in a system's `/etc/hosts` file. This setting enables you to override addresses in the blocklist, declare aliases for hosts on your network that wouldn't otherwise be resolved by your `local_upstream_dns` server or any other reason you need to fix a host to an IP manually.
     ```yaml
     dns_nodes:
       vars:
-        ha_vars:
-          local_hosts:
-            - "5.6.7.8 my.server.com"
-            - "192.168.0.100 nas.local media.local docs.local"
+        local_hosts:
+          - "5.6.7.8 my.server.com"
+          - "192.168.0.100 nas.local media.local docs.local"
     ```
 
 * `trusted_nets` are the CIDRs that the DNS resolver will allow queries to originate from. This defaults to the RFC1918 address sets plus the guest address that podman rootless network uses if unconfigured. But this can be locked down further or expanded as required.
     ```yaml
     dns_nodes:
       vars:
-        ha_vars:
-          trusted_nets:
-            - 192.168.0.1/24
-            - 169.254.1.2/32
+        trusted_nets:
+          - 192.168.0.1/24
+          - 169.254.1.2/32
     ```
 
 ## Logging

@@ -62,27 +62,27 @@
             mode: "0644"
 
         - name: Create or force update of podman secret for Prometheus API token
-          when: ha_vars.cloud_api_token is defined
+          when: cloud_api_token is defined
           become: false
           containers.podman.podman_secret:
             name: prometheus_api_token
             state: present
-            data: "{{ ha_vars.cloud_api_token }}"
+            data: "{{ cloud_api_token }}"
             # The 'force: true' ensures the secret is overwritten even
             # if it already exists, as the contents cannot be compared.
             force: true
 
         - name: Ensure secret is removed if token variable is NOT defined
-          when: ha_vars.cloud_api_token is not defined
+          when: cloud_api_token is not defined
           containers.podman.podman_secret:
             name: prometheus_api_token
             state: absent
 
     - name: 🎯  Merge host-specific HA variables
       ansible.builtin.set_fact:
-        # This merges the base ha_vars with the overrides.
-        # The | default({}) prevents errors if a host has no overrides.
-        ha_vars: "{{ ha_vars | combine(ha_vars_overrides | default({})) }}"
+        # This merges the base host_vars (if any are defined) with the overrides.
+        # The | default({}) prevents errors if one or other are undefined.
+        host_vars: "{{ host_vars | default({}) | combine(host_vars_overrides | default({})) }}"
 
     - name: 📦  Install systemd units
       block:

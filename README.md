@@ -64,9 +64,8 @@ Below is an example config to get 2 remote nodes installed (accessible at `192.1
       dns_nodes:
         vars:
           ansible_user: pi # <-- the user you can SSH to the hosts as
-          ha_vars:
-            vip: 192.168.0.53 # <-- the floating IP shared among the nodes
-            vrrp_secret: super_duper_s3cr3t
+          vip: 192.168.0.53 # <-- the floating IP shared among the nodes
+          vrrp_secret: super_duper_s3cr3t
         
         # members of the dns_nodes group
         hosts:
