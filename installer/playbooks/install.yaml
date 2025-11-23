@@ -36,6 +36,7 @@
 
   tasks:
     - name: ⚙️  Setup environment and dependencies
+      tags: [setup]
       block:
         - name: Ensure podman is installed
           ansible.builtin.package:
@@ -85,8 +86,10 @@
         host_vars: "{{ host_vars | default({}) | combine(host_vars_overrides | default({})) }}"
 
     - name: 📦  Install systemd units
+      tags: [systemd]
       block:
         - name: Fetch Deployment Manifest Artifact
+          tags: [manifest]
           ansible.builtin.uri:
             # URL is constructed using the repo owner, repo name, release tag, and file name.
             url: "{{ ha_sinkhole_common_gitrepo }}{{ ha_sinkhole_common_manifest_file }}"
@@ -97,30 +100,21 @@
             # but generally safe to omit as GitHub uses standard certs.
             # validate_certs: false
           register: manifest_lookup
-          tags: [manifest]
 
         - name: Parse YAML and set version facts
+          tags: [manifest]
           ansible.builtin.set_fact:
             # Convert the content string into a usable Ansible dictionary
             ha_sinkhole_manifest: "{{ manifest_lookup.content | from_yaml }}"
-          tags: [manifest]
 
         - name: DEBUG Verify manifest file content was fetched
+          tags: [manifest]
           ansible.builtin.debug:
             msg: "Fetched channels: {{ ha_sinkhole_manifest | to_json }}"
           when: ansible_verbosity > 0 # Only when running with -v
-          tags: [manifest]
-
-        - name: Copy user systemd timer file
-          ansible.builtin.copy:
-            src: "blocklist-updater.timer"
-            dest: "/etc/systemd/user/blocklist-updater.timer"
-            mode: "0644"
-          notify:
-            - Reload systemd (user)
-            - Restart blocklist-updater timer
 
         - name: Copy pod file
+          tags: [dns-node, stats-collector]
           ansible.builtin.copy:
             src: "ha-node.pod"
             dest: "{{ ha_sinkhole_common_systemd_dir }}/users/ha-node.pod"
@@ -131,6 +125,7 @@
             - Restart stats-collector
 
         - name: Template vip-manager container file
+          tags: [vip-manager]
           ansible.builtin.template:
             src: "vip-manager.container.j2"
             dest: "{{ ha_sinkhole_common_systemd_dir }}/vip-manager.container"
@@ -140,6 +135,7 @@
             - Restart vip-manager
 
         - name: Template dns-node container file
+          tags: [dns-node]
           ansible.builtin.template:
             src: "dns-node.container.j2"
             dest: "{{ ha_sinkhole_common_systemd_dir }}/users/dns-node.container"
@@ -149,6 +145,7 @@
             - Restart dns-node
 
         - name: Template stats-collector container file
+          tags: [stats-collector]
           ansible.builtin.template:
             src: "stats-collector.container.j2"
             dest: "{{ ha_sinkhole_common_systemd_dir }}/users/stats-collector.container"
@@ -157,7 +154,18 @@
             - Reload systemd (user)
             - Restart stats-collector
 
+        - name: Copy user systemd timer file
+          tags: [blocklist]
+          ansible.builtin.copy:
+            src: "blocklist-updater.timer"
+            dest: "/etc/systemd/user/blocklist-updater.timer"
+            mode: "0644"
+          notify:
+            - Reload systemd (user)
+            - Restart blocklist-updater timer
+
         - name: Template blocklist-updater container file
+          tags: [blocklist]
           ansible.builtin.template:
             src: "blocklist-updater.container.j2"
             dest: "{{ ha_sinkhole_common_systemd_dir }}/users/blocklist-updater.container"
@@ -171,6 +179,7 @@
       loop:
         - { name: "vip-manager.service", state: started, scope: system }
         - { name: "dns-node.service", state: started, scope: user }
+        - { name: "stats-collector.service", state: started, scope: user }
         - { name: "blocklist-updater.timer", state: started, scope: user }
       loop_control:
         loop_var: current_service
