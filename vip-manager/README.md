@@ -37,29 +37,27 @@ For `vip-manager`, the following configuration values from the inventory config 
     ```yaml
     dns_nodes:
       vars:
-        ha_vars:
-          vip: 192.168.0.53
+        vip: 192.168.0.53
     ```
 
 *   `vrrp_secret` is the secret used within the cluster to manage communication. It must be the SAME on all cluster nodes. There is no default value for this item, it must exist in your config file.
     ```yaml
     dns_nodes:
       vars:
-        ha_vars:
-          vrrsp_secret: wh0_goes_th3r3
+        vrrsp_secret: wh0_goes_th3r3
     ```
 
-*   `state` specifies the node state that machines will try to start in. It defaults to `BACKUP`. If all your nodes start as `BACKUP`, they will elect a `MASTER` based on a combination of `priority`, IP address and status of the `dns-node` service, though these details are mostly irrelevant. To create a preferred master, launch that one container with `state:MASTER` and a higher priority as shown in the overridden `ha_vars`. You probably want to do this if you have one machine with better hardware than the others that should always be preferred as a primary service provider.
+*   `state` specifies the node state that machines will try to start in. It defaults to `BACKUP`. If all your nodes start as `BACKUP`, they will elect a `MASTER` based on a combination of `priority`, IP address and status of the `dns-node` service, though these details are mostly irrelevant. To create a preferred master, launch that one container with `state:MASTER` and a higher priority as shown in the overridden `host_vars`. You probably want to do this if you have one machine with better hardware than the others that should always be preferred as a primary service provider.
     ```yaml
     dns_nodes:
       vars:
-        ha_vars:
+        host_vars:
           # at the group level, only BACKUP really makes sense. Override as 
           # shown to make a single machine the preferred MASTER
           state: BACKUP 
     hosts:
       dns2:
-        ha_vars_overrides:
+        host_vars_overrides:
           state: MASTER
           priority: 110
     ```
@@ -70,7 +68,7 @@ For `vip-manager`, the following configuration values from the inventory config 
     ```yaml
     hosts:
       dns2:
-        ha_vars_overrides:
+        host_vars_overrides:
           interface: eth0
     ```
 
@@ -78,7 +76,7 @@ For `vip-manager`, the following configuration values from the inventory config 
     ```yaml
     hosts:
       dns2:
-        ha_vars_overrides:
+        host_vars_overrides:
           vrrp_router_id: dns2
     ```
 

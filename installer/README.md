@@ -62,7 +62,7 @@ We can override the default settings like so to make our `dns1` machine always b
 ```yaml
 dns_nodes:
   vars:
-    ha_vars:
+    host_vars:
       # the following are defaults and don't need to be declared like this, 
       # but they're here just for completeness
       state: BACKUP
@@ -72,7 +72,7 @@ dns_nodes:
   hosts:
     dns1:
       ansible_host: 192.168.0.1
-      ha_vars_overrides:
+      host_vars_overrides:
         state: MASTER
         priority: 120
     dns2:

@@ -22,9 +22,8 @@ The `blocklist-updater` is only interested in the `blocklist_urls` config elemen
 ```yaml
     dns_nodes:
       vars:
-        ha_vars:
-          blocklist_urls:
-            - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+        blocklist_urls:
+          - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
 ```
 
 Others that you may wish to add to or replace it with are:

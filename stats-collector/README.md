@@ -19,10 +19,9 @@ The following 3 configuration items are needed in your inventory in order to pus
 ```yaml
     dns-nodes:
       vars:
-        ha_vars:
-          cloud_instance: prometheus-prod-NN-prod-eu-west-1.grafana.net
-          cloud_user: 1234567
-          cloud_api_token: glc_eyJvIjoiDPU5M...UAd2rzdd4yIn12
+        cloud_instance: prometheus-prod-NN-prod-eu-west-1.grafana.net
+        cloud_user: 1234567
+        cloud_api_token: glc_eyJvIjoiDPU5M...UAd2rzdd4yIn12
 ```
 
 To find the first two values, log in to your grafana UI with an admin account and open **Connections > Data sources** and select your prometheus service (on the free tier it will be named `grafanacloud-yourusername-prom`). The URL you need is in the `Connection` section, labeled `Prometheus server URL`. Copy ONLY the hostname into the `cloud_instance` config item in your inventory as shown above, don't include the `https://` or anything after the hostname.
