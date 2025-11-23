@@ -36,12 +36,12 @@ ok() {
 }
 
 usage() {
-    echo "Usage: $0 -f <path/to/inventory.yaml> -c <command_to_execute>"
-    echo "Options:"
-    echo "  -f <file>   Path to the .yaml or .yml inventory file."
-    echo "  -c <cmd>    The command to execute (defaults to 'install')."
-    echo "  -l          Use locally built installer (for development only)."
-    echo "If options are missing, the script will prompt for values at runtime."
+    printf "Usage: $0 -f <path/to/inventory.yaml> -c <command_to_execute>\n\n"
+    printf "Options:\n"
+    printf "  ${bold}-f${reset} <file>   Path to the .yaml or .yml inventory file.\n"
+    printf "  ${bold}-c${reset} <cmd>    The command to execute (defaults to 'install').\n"
+    printf "  ${bold}-l${reset}          Use a locally built installer (for development only).\n\n"
+    printf "If options are missing, the script will prompt for values at runtime.\n\n"
     exit 0
 }
 
@@ -92,19 +92,6 @@ trap 'error_exit "SIGTERM detected."' SIGTERM
 trap 'error_exit "An unknown or unexpected error occurred."' ERR
 
 printf "\n🌐  ${bold}Welcome to ha-sinkhole 🌐${reset}\n\n"
-ok "Checking environment..."
-
-if ! command -v podman &> /dev/null; then
-    container_cmd=docker
-fi
-
-if ! command -v $container_cmd &> /dev/null; then
-    error_exit "Neither podman nor docker is installed. Please install one of them to proceed."
-fi
-
-if [[ -z "${SSH_AUTH_SOCK:-}" || ! -S $SSH_AUTH_SOCK ]]; then
-    error_exit "${bold}SSH_AUTH_SOCK${reset} is not set or is not accessible. Please ensure your SSH agent is running, your key is added and the environment variable is set."
-fi
 
 while getopts ":f:c:lh" opt; do
     case "${opt}" in
@@ -133,8 +120,22 @@ done
 
 shift "$((OPTIND-1))"
 
+ok "Checking environment..."
+
+if ! command -v podman &> /dev/null; then
+    container_cmd=docker
+fi
+
+if ! command -v $container_cmd &> /dev/null; then
+    error_exit "Neither podman nor docker is installed. Please install one of them to proceed."
+fi
+
+if [[ -z "${SSH_AUTH_SOCK:-}" || ! -S $SSH_AUTH_SOCK ]]; then
+    error_exit "${bold}SSH_AUTH_SOCK${reset} is not set or is not accessible. Please ensure your SSH agent is running, your key is added and the environment variable is set."
+fi
+
 # Prompt for inventory file if not provided
-if [[ -z "$inventory_file" ]]; then
+if [[ -z "$inventory_file" || ! -f "$inventory_file" ]]; then
     while true; do
         read -r -e -p $'\e[33m↪ Inventory file path:\e[0m ' input_file < /dev/tty
         input_file="${input_file/#\~/$HOME}"  # Expand ~ to $HOME
@@ -153,7 +154,7 @@ fi
 if [[ -z "$installer_container" ]]; then
     channel=$(get_channel_from_inventory "$inventory_file")
     ok "Using install channel: ${bold}${channel}${reset}"
-    ok "Finding installer version from release manifest..."
+    ok "Finding installer version from ${bold}${channel}${reset} release manifest..."
     installer_version=$(get_installer_version "$channel")
     installer_container="ghcr.io/davison/ha-sinkhole/installer:${installer_version}"
 fi
