@@ -9,10 +9,15 @@ By default, each Sinkhole DNS node uses identical configuration for the `vip-man
 An additional job performed by `vip-manager` is to forward traffic from the standard DNS port of 53 to an unprivileged port of 1053 on whichever machine has the VIP address. This is because the `dns-node` container is designed to run rootless (using `podman`) and so listens on that unprivileged port (1053) for the DNS requests. In order for clients to be able to use the default DNS port (53) netfilter rules via `nftables` are added to control the port mapping. These rules rewrite all packets arriving on the `$VIRTUAL_IP` address at port 53 to a `dnat` of 1053. This should be significantly more secure than running the DNS server as root. The `nftables` configuration looks like this (the VIP address is templated and would be replaced with the real VIP):
 
 ```sh
-add table ip dns_port_forward
-add chain ip dns_port_forward dns_dnat { type nat hook prerouting priority dstnat; }
-add rule ip dns_port_forward dns_dnat ip daddr "$VIRTUAL_IP" tcp dport 53 dnat to :1053
-add rule ip dns_port_forward dns_dnat ip daddr "$VIRTUAL_IP" udp dport 53 dnat to :1053
+table ip dns_port_forward { }
+flush table ip dns_port_forward
+table ip dns_port_forward {
+    chain dns_dnat {
+        type nat hook prerouting priority dstnat;
+        ip daddr $VIRTUAL_IP tcp dport 53 dnat to :1053
+        ip daddr $VIRTUAL_IP udp dport 53 dnat to :1053
+    }
+}
 ```
 
 The running container has a `healthcheck.sh` script, included to perform regular health checks on the `dns-node` container's `CoreDNS` service. This ensures that the service is running correctly, if it fails then `keepalived` will move the VIP to another working instance even in the event that the `dns-node` container continues to run.
