@@ -11,9 +11,9 @@ After=blocklist-updater.service
 Pod=ha-node.pod
 Image=ghcr.io/davison/ha-sinkhole/dns-node:{{ ha_sinkhole_manifest[install_channel]['dns-node'] | default('MISSING_VERSION') }}
 Environment=LOCAL_DOMAIN={{ local_domain | default('') }}
-Environment=LOCAL_UPSTREAM_DNS={{ local_upstream_dns | default('') }}
-Environment=UPSTREAM_DNS={{ upstream_dns | default('') | join(' ') }}
-Environment=TRUSTED_NETS={{ trusted_nets | default('') | join(' ') }}
+Environment=LOCAL_UPSTREAM_DNS="{{ local_upstream_dns | default('') }}"
+Environment=UPSTREAM_DNS="{{ upstream_dns | default('') | join(' ') }}"
+Environment=TRUSTED_NETS="{{ trusted_nets | default('') | join(' ') }}"
 Volume={{ ha_sinkhole_common_dir }}/data:/data:Z
 LogDriver=journald
 
