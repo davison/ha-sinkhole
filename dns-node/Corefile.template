@@ -1,14 +1,11 @@
 .:1053 {
-    ${CORE_RELOAD}
+    reload ${RELOAD_INTERVAL}
     log
     any
     local
     metadata
-    prometheus
-    
-    health :8080 {
-       lameduck 5s
-    }
+    prometheus    
+    health
 
     acl {
         allow net ${TRUSTED_NETS}
@@ -23,7 +20,7 @@
         # used to prevent an error in the case that the file doesn't exist
         import /data/local.hosts*
         no_reverse
-        ttl 7200
+        ttl ${TTL_DURATION}
         fallthrough
     }
     
@@ -38,8 +35,7 @@
        health_check 3s
     }
 
-    # cache results locally for an hour by default
-    cache 3600
+    cache ${CACHE_DURATION}
 
     # log errors to stdout
     errors
