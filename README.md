@@ -3,24 +3,24 @@
 <img align="right" src=".files/ha-sinkhole-architecture-logo.drawio.svg" alt="logo" title="HA Sinkhole" style="max-width: 250px">
 
 
-- [Intro](#intro)
+- [👋 Intro](#-intro)
   - [Installation pre-flight checklist](#installation-pre-flight-checklist)
-- [Quick Start Guide](#quick-start-guide)
+- [⏩ Quick Start Guide](#-quick-start-guide)
   - [Config setup](#config-setup)
   - [Install from inventory](#install-from-inventory)
   - [Test the HA](#test-the-ha)
-- [A More Detailed Guide](#a-more-detailed-guide)
+- [📑 A More Detailed Guide](#-a-more-detailed-guide)
   - [Installation PC](#installation-pc)
   - [DNS Sinkhole Nodes](#dns-sinkhole-nodes)
   - [Visualisation](#visualisation)
-- [HOW-TOs and Cookbooks](#how-tos-and-cookbooks)
+- [👩‍🍳 How-tos, FAQs and Cookbooks](#-how-tos-faqs-and-cookbooks)
   - [How can I...](#how-can-i)
     - [Temporarily exclude one of my blocklists?](#temporarily-exclude-one-of-my-blocklists)
     - [Upgrade to newer components?](#upgrade-to-newer-components)
     - [Uninstall all the ha-sinkhole components?](#uninstall-all-the-ha-sinkhole-components)
     - [Send metrics to my grafana cloud account?](#send-metrics-to-my-grafana-cloud-account)
 
-# Intro
+# 👋 Intro
 `ha-sinkhole` is a highly available DNS sinkhole service, designed to prevent ads, trackers, malware and other unwanted content appearing in your browser, your mobile apps, your smart TVs and any other Internet connected device on your network.
 
 The project is inspired by the fantastic [pi-hole](https://github.com/pi-hole/pi-hole) (big shout out to the creators and contributors there) but is a completely different setup using different technologies and with no dependency on pi-hole.
@@ -49,7 +49,7 @@ Both controller and the target machines you want to install components on need t
 
 The installation makes use of passwordless SSH and being able to become root on the target nodes in order to perform any install or uninstall task, so you will need to set these up first if you don't already have them working.
 
-# Quick Start Guide
+# ⏩ Quick Start Guide
 
 This is the minimal way to get two machines working in an HA configuration and serving DNS requests including sinkhole features.
 
@@ -126,7 +126,7 @@ If everything looks good, configure your DNS clients with the `vip` address and 
 
 Finally, profit with ad-free browsing and highly available DNS 😊
 
-# A More Detailed Guide
+# 📑 A More Detailed Guide
 
 ## Installation PC
 
@@ -160,7 +160,7 @@ The containers making up a DNS sinkhole node are:
 
 Currently an early preview of metrics and visualisation is available if you have a cloud instance of grafana/prometheus. Only raw metrics are sent which you should be able to see in your prometheus explorer, dashboards will follow soon.
 
-# HOW-TOs and Cookbooks
+# 👩‍🍳 How-tos, FAQs and Cookbooks
 
 Below are a few handy hints for achieving common objectives with your DNS and sinkhole setup. They're in no particular order.
 
