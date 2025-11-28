@@ -27,7 +27,7 @@ stable:
 edge:
   # Latest published component versions used for pre-release testing.
   dns-node: "0.3.1"
-  stats-collector: "0.1.3"
+  stats-collector: "0.1.4"
   vip-manager: "0.1.7"
   blocklist-updater: "0.1.4"
   installer: "0.5.2"
