@@ -23,7 +23,7 @@ discovery.relabel "metrics_integrations_integrations_coredns" {
 
 prometheus.scrape "metrics_integrations_integrations_coredns" {
   targets                   = discovery.relabel.metrics_integrations_integrations_coredns.output
-  scrape_native_histograms  = true  
+  scrape_native_histograms  = false  
   forward_to                = [prometheus.remote_write.prometheus_cloud.receiver]
   job_name                  = "integrations/coredns"
 }
