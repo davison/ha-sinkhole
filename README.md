@@ -158,7 +158,9 @@ The containers making up a DNS sinkhole node are:
 
 ## Visualisation
 
-Currently an early preview of metrics and visualisation is available if you have a cloud instance of grafana/prometheus. Only raw metrics are sent which you should be able to see in your prometheus explorer, dashboards will follow soon.
+Currently an early preview of metrics and visualisation is available if you have a cloud instance of grafana/prometheus. A dashboard can be imported into your grafana instance from [here](.files/grafana-dashboard.json).
+
+![dashboard](.files/grafana-dashboard.png "Dashboard")
 
 # 👩‍🍳 How-tos, FAQs and Cookbooks
 

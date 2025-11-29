@@ -2,10 +2,14 @@
 
 The `stats-collector` container is responsible for pushing logs and metrics from the [dns-node](../dns-node/README.md) container on the same host to the local or cloud based metrics and visualisation stack. It's based on [grafana alloy](https://grafana.com/docs/alloy/latest/)
 
+![dashboard](../.files/grafana-dashboard.png "Grafana Dashboard")
+
+The [dashboard](../.files/grafana-dashboard.json) can be imported from this repo.
+
 ## Usage
 
    ```bash
-   systemctl --user start stats-collector
+   systemctl --user (start|stop|restart) stats-collector
    ```
 
 ## Configuration
