@@ -1,6 +1,6 @@
 # Stats Collector
 
-The `stats-collector` container is responsible for pushing logs and metrics from the [dns-node](../dns-node/README.md) container on the same host to the local or cloud based metrics and visualisation stack. It's based on [grafana alloy](https://grafana.com/docs/alloy/latest/)
+The `stats-collector` container is responsible for pushing logs and metrics from the [dns-resolver](../dns-resolver/README.md) container on the same host to the local or cloud based metrics and visualisation stack. It's based on [grafana alloy](https://grafana.com/docs/alloy/latest/)
 
 ![dashboard](../.files/grafana-dashboard.png "Grafana Dashboard")
 
@@ -21,7 +21,7 @@ The `stats-collector` can push to a local stack that you installed as part of `h
 The following 3 configuration items are needed in your inventory in order to push your metrics to a grafana cloud stack. Creating the stack is beyond the scope of this doc, the assumption is that you already have one setup and ready to go.
 
 ```yaml
-    dns-nodes:
+    dns-resolvers:
       vars:
         cloud_instance: prometheus-prod-NN-prod-eu-west-1.grafana.net
         cloud_user: 1234567

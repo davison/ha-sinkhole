@@ -9,7 +9,7 @@
     - name: Stop and disable services
       loop:
         - { name: "vip-manager.service", state: stopped, scope: system }
-        - { name: "dns-node.service", state: stopped, scope: user }
+        - { name: "dns-resolver.service", state: stopped, scope: user }
         - { name: "stats-collector.service", state: stopped, scope: user }
         - { name: "blocklist-updater.timer", state: stopped, scope: user }
       loop_control:
@@ -29,7 +29,7 @@
         state: absent
       loop:
         - "{{ ha_sinkhole_common_systemd_dir }}/vip-manager.container"
-        - "{{ ha_sinkhole_common_systemd_dir }}/users/dns-node.container"
+        - "{{ ha_sinkhole_common_systemd_dir }}/users/dns-resolver.container"
         - "{{ ha_sinkhole_common_systemd_dir }}/users/stats-collector.container"
         - "{{ ha_sinkhole_common_systemd_dir }}/users/blocklist-updater.container"
         - "/etc/systemd/user/blocklist-updater.timer"

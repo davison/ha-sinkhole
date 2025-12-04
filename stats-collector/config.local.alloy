@@ -3,7 +3,7 @@
 prometheus.scrape "coredns" {
   targets = [
     {
-      job         = "ha-sinkhole-dns-node",
+      job         = "ha-sinkhole-dns-resolver",
       __address__ = "127.0.0.1:9153",
       host        = "dns-hepburn",
     },

@@ -4,7 +4,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="LI0nnxGzOqaYkPiCq6Ot-1" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="dns-node" vertex="1">
+        <mxCell id="LI0nnxGzOqaYkPiCq6Ot-1" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="dns-resolver" vertex="1">
           <mxGeometry height="120" width="130" x="169" y="80" as="geometry" />
         </mxCell>
         <mxCell id="PPFN2LAUcLpzplPiEgik-13" connectable="0" parent="LI0nnxGzOqaYkPiCq6Ot-1" style="group" value="" vertex="1">
@@ -25,7 +25,7 @@
         <mxCell id="PPFN2LAUcLpzplPiEgik-18" parent="PPFN2LAUcLpzplPiEgik-16" style="shape=mxgraph.signs.safety.no_entry;html=1;pointerEvents=1;fillColor=light-dark(#000000,#FF0000);strokeColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;" value="" vertex="1">
           <mxGeometry height="40.00000000000001" width="40.000888888888895" as="geometry" />
         </mxCell>
-        <mxCell id="LI0nnxGzOqaYkPiCq6Ot-2" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="dns-node" vertex="1">
+        <mxCell id="LI0nnxGzOqaYkPiCq6Ot-2" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="dns-resolver" vertex="1">
           <mxGeometry height="120" width="130" x="479" y="80" as="geometry" />
         </mxCell>
         <mxCell id="PPFN2LAUcLpzplPiEgik-7" connectable="0" parent="LI0nnxGzOqaYkPiCq6Ot-2" style="group" value="" vertex="1">
@@ -93,7 +93,7 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram name="dns-node" id="Pjl4AffIUJ58vvyyI4DL">
+  <diagram name="dns-resolver" id="Pjl4AffIUJ58vvyyI4DL">
     <mxGraphModel dx="1447" dy="1512" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
@@ -104,7 +104,7 @@
         <mxCell id="yRlBHB4S-2NLVUNAGJWT-5" parent="pzs4RW3F1BzVTe-qp-hS-4" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 4 1 4;fillColor=light-dark(#FFFFFF,#3F3F3F);fontColor=light-dark(#000000,#FF9933);" value="pod" vertex="1">
           <mxGeometry height="150" width="360" x="180" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="pzs4RW3F1BzVTe-qp-hS-7" parent="pzs4RW3F1BzVTe-qp-hS-4" style="whiteSpace=wrap;html=1;aspect=fixed;" value="&lt;font style=&quot;font-size: 14px;&quot; face=&quot;Roboto Mono&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Roboto+Mono&quot;&gt;dns-node&lt;/font&gt;" vertex="1">
+        <mxCell id="pzs4RW3F1BzVTe-qp-hS-7" parent="pzs4RW3F1BzVTe-qp-hS-4" style="whiteSpace=wrap;html=1;aspect=fixed;" value="&lt;font style=&quot;font-size: 14px;&quot; face=&quot;Roboto Mono&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Roboto+Mono&quot;&gt;dns-resolver&lt;/font&gt;" vertex="1">
           <mxGeometry height="100" width="100" x="200" y="50" as="geometry" />
         </mxCell>
         <mxCell id="pzs4RW3F1BzVTe-qp-hS-8" parent="pzs4RW3F1BzVTe-qp-hS-4" style="whiteSpace=wrap;html=1;aspect=fixed;" value="&lt;font style=&quot;font-size: 14px;&quot; face=&quot;Roboto Mono&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Roboto+Mono&quot;&gt;vip-manager&lt;/font&gt;" vertex="1">
@@ -422,7 +422,7 @@
             <mxPoint x="1010" y="580" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="SfT2TZEpy1X7UTlZ1bSD-15" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="&lt;font style=&quot;font-size: 14px;&quot; face=&quot;Roboto Mono&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Roboto+Mono&quot;&gt;dns-node&lt;/font&gt;" vertex="1">
+        <mxCell id="SfT2TZEpy1X7UTlZ1bSD-15" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="&lt;font style=&quot;font-size: 14px;&quot; face=&quot;Roboto Mono&quot; data-font-src=&quot;https://fonts.googleapis.com/css?family=Roboto+Mono&quot;&gt;dns-resolver&lt;/font&gt;" vertex="1">
           <mxGeometry height="100" width="100" x="700" y="410" as="geometry" />
         </mxCell>
         <mxCell id="SfT2TZEpy1X7UTlZ1bSD-19" edge="1" parent="1" source="SfT2TZEpy1X7UTlZ1bSD-15" style="endArrow=none;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="SfT2TZEpy1X7UTlZ1bSD-18" value="">

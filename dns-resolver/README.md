@@ -1,28 +1,28 @@
 # DNS Node
 
-The `dns-node` container is responsible for DNS resolution using [CoreDNS](https://coredns.io/), a flexible and extensible DNS server. It serves DNS queries and can be configured to block specific domains based on the blocklists provided by the [blocklist-updater](../blocklist-updater/README.md) container. The `dns-node` mounts the same host volume as the updater; `/var/lib/ha-sinkhole/data` and reads the consolidated `blocklists.hosts` file that the updater creates. If the file changes, `coredns` will reload the contents of it.
+The `dns-resolver` container is responsible for DNS resolution using [CoreDNS](https://coredns.io/), a flexible and extensible DNS server. It serves DNS queries and can be configured to block specific domains based on the blocklists provided by the [blocklist-updater](../blocklist-updater/README.md) container. The `dns-resolver` mounts the same host volume as the updater; `/var/lib/ha-sinkhole/data` and reads the consolidated `blocklists.hosts` file that the updater creates. If the file changes, `coredns` will reload the contents of it.
 
-In addition to providing a sinkhole service for bad actor domains, `dns-node` will pass any unblocked domain queries to a variety of upstream DNS resolvers so that the client can obtain correct IP addresses for those hosts. Upstream DNS servers can include public resolvers like Quad1 or Quad9 `1.1.1.1`, `9.9.9.9` or Google's DNS servers (though you probably shouldn't) or maybe your ISP's servers.
+In addition to providing a sinkhole service for bad actor domains, `dns-resolver` will pass any unblocked domain queries to a variety of upstream DNS resolvers so that the client can obtain correct IP addresses for those hosts. Upstream DNS servers can include public resolvers like Quad1 or Quad9 `1.1.1.1`, `9.9.9.9` or Google's DNS servers (though you probably shouldn't) or maybe your ISP's servers.
 
 You can also optionally include a local upstream server - often your router or DHCP service - that will answer queries for hosts on your local network for a specific local domain and this can be done alongside the blocklist and upstream services.
 
 ## Usage
 
-The `dns-node` container relies on the [blocklist-updater](../blocklist-updater/README.md) container having already created the `blocklists.hosts` file. The updater service is listed as a dependency of the `dns-node` service to ensure that it runs and creates the file prior to the DNS container starting up. This file will be monitored for changes by the `dns-node` container. By default this file will be in `/var/lib/ha-sinkhole/data` on the host file system.
+The `dns-resolver` container relies on the [blocklist-updater](../blocklist-updater/README.md) container having already created the `blocklists.hosts` file. The updater service is listed as a dependency of the `dns-resolver` service to ensure that it runs and creates the file prior to the DNS container starting up. This file will be monitored for changes by the `dns-resolver` container. By default this file will be in `/var/lib/ha-sinkhole/data` on the host file system.
 
-The `dns-node` container includes health checks to ensure that it is functioning correctly, these are used by the [vip-manager](../vip-manager/README.md) to determine which node should be primary. You can stop, (re)start or check the status of the service using:
+The `dns-resolver` container includes health checks to ensure that it is functioning correctly, these are used by the [vip-manager](../vip-manager/README.md) to determine which node should be primary. You can stop, (re)start or check the status of the service using:
 
 ```bash
-systemctl --user restart dns-node.service
-systemctl --user status dns-node.service
-systemctl --user stop dns-node.service
+systemctl --user restart dns-resolver.service
+systemctl --user status dns-resolver.service
+systemctl --user stop dns-resolver.service
 ```
 
 If you stop the service on the machine that is currently the primary/master node, you should immediately see the VIP address move over to one of your other nodes and that the service as a whole continues uninterrupted.
 
 ## Configuration
 
-The `dns-node` container is configured through the following setings defined in the `inventory.yaml` file. Note that if you change any of the settings on the host's service unit files and then re-run the installer, they will revert to whatever is in the inventory file. The best way to manage all `ha-sinkhole` nodes and components is by re-running the [installer](../installer/README.md) with a modified configuration.
+The `dns-resolver` container is configured through the following setings defined in the `inventory.yaml` file. Note that if you change any of the settings on the host's service unit files and then re-run the installer, they will revert to whatever is in the inventory file. The best way to manage all `ha-sinkhole` nodes and components is by re-running the [installer](../installer/README.md) with a modified configuration.
 
 *   `upstream_dns` is a list of DNS servers that can resolve queries which are not subject to blocking. They are typically your ISP's DNS servers, public servers such as Quad1 or Quad9, or perhaps OpenDNS servers. The defaults are Quad1 and Quad9 which will be queried round-robin.
    
@@ -71,8 +71,8 @@ The `dns-node` container is configured through the following setings defined in 
 
 ## Logging
 
-Logs for the `dns-node` container can be viewed using the journal:
+Logs for the `dns-resolver` container can be viewed using the journal:
 
 ```bash
-journalctl -u dns-node.service
+journalctl -u dns-resolver.service
 ```

@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       # We output a single JSON array named 'services'
-      # e.g., ["dns-node", "vip-manager"]
+      # e.g., ["dns-resolver", "vip-manager"]
       services: ${{ steps.filter.outputs.changes }}
     steps:
       - name: Checkout repository
@@ -35,8 +35,8 @@ jobs:
           # The 'outputs.changes' will contain an array of the keys
           # for the filters that matched.
           filters: |
-            dns-node:
-                - 'dns-node/**'
+            dns-resolver:
+                - 'dns-resolver/**'
                 - '!**/*.md'
             vip-manager:
                 - 'vip-manager/**'
