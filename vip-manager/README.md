@@ -1,12 +1,12 @@
 # VIP Manager
 
-The `vip-manager` component is responsible for managing the Virtual IP (VIP) address in the HA Sinkhole application. It uses [Keepalived](httpos://keepalived.org) to ensure high availability of the DNS service by managing the VIP and performing master node elections among the cluster members. The VIP should be an address on the same network as the hosts and protected from use by other machines (i.e. outside of a DHCP range). When the `vip-manager` chooses a primary/master node based on configuration and current service status' of the [dns-nodes](../dns-node/) it will add the VIP as an alias to the same NIC as the machine uses for its default route and then aggressively ARP so that routing equipment updates to send traffic for that IP address to the new primary node.
+The `vip-manager` component is responsible for managing the Virtual IP (VIP) address in the HA Sinkhole application. It uses [Keepalived](httpos://keepalived.org) to ensure high availability of the DNS service by managing the VIP and performing master node elections among the cluster members. The VIP should be an address on the same network as the hosts and protected from use by other machines (i.e. outside of a DHCP range). When the `vip-manager` chooses a primary/master node based on configuration and current service status' of the [dns-resolvers](../dns-resolver/) it will add the VIP as an alias to the same NIC as the machine uses for its default route and then aggressively ARP so that routing equipment updates to send traffic for that IP address to the new primary node.
 
 `vip-manager` is designed to run as a systemd service, ensuring that it starts automatically on boot and restarts in case of failure. It requires `root` privileges to operate and cannot be run as a `podman` rootless container due to the privileges required to manage network interfaces.
 
 By default, each Sinkhole DNS node uses identical configuration for the `vip-manager` which means that they all start in `BACKUP` state and with the same priority level of 100. It's fine to leave it like this on all nodes if you have no preference which machine is the primary node, however you can increase the priority of a node and optionally start it up as `MASTER` if you have a preferred primary node (for example with better hardware). See the [configuration](#configuration) section below for details.
 
-An additional job performed by `vip-manager` is to forward traffic from the standard DNS port of 53 to an unprivileged port of 1053 on whichever machine has the VIP address. This is because the `dns-node` container is designed to run rootless (using `podman`) and so listens on that unprivileged port (1053) for the DNS requests. In order for clients to be able to use the default DNS port (53) netfilter rules via `nftables` are added to control the port mapping. These rules rewrite all packets arriving on the `$VIRTUAL_IP` address at port 53 to a `dnat` of 1053. This should be significantly more secure than running the DNS server as root. The `nftables` configuration looks like this (the VIP address is templated and would be replaced with the real VIP):
+An additional job performed by `vip-manager` is to forward traffic from the standard DNS port of 53 to an unprivileged port of 1053 on whichever machine has the VIP address. This is because the `dns-resolver` container is designed to run rootless (using `podman`) and so listens on that unprivileged port (1053) for the DNS requests. In order for clients to be able to use the default DNS port (53) netfilter rules via `nftables` are added to control the port mapping. These rules rewrite all packets arriving on the `$VIRTUAL_IP` address at port 53 to a `dnat` of 1053. This should be significantly more secure than running the DNS server as root. The `nftables` configuration looks like this (the VIP address is templated and would be replaced with the real VIP):
 
 ```sh
 table ip dns_port_forward { }
@@ -20,7 +20,7 @@ table ip dns_port_forward {
 }
 ```
 
-The running container has a `healthcheck.sh` script, included to perform regular health checks on the `dns-node` container's `CoreDNS` service. This ensures that the service is running correctly, if it fails then `keepalived` will move the VIP to another working instance even in the event that the `dns-node` container continues to run.
+The running container has a `healthcheck.sh` script, included to perform regular health checks on the `dns-resolver` container's `CoreDNS` service. This ensures that the service is running correctly, if it fails then `keepalived` will move the VIP to another working instance even in the event that the `dns-resolver` container continues to run.
 
 ## Usage
 
@@ -52,7 +52,7 @@ For `vip-manager`, the following configuration values from the inventory config 
         vrrsp_secret: wh0_goes_th3r3
     ```
 
-*   `state` specifies the node state that machines will try to start in. It defaults to `BACKUP`. If all your nodes start as `BACKUP`, they will elect a `MASTER` based on a combination of `priority`, IP address and status of the `dns-node` service, though these details are mostly irrelevant. To create a preferred master, launch that one container with `state:MASTER` and a higher priority as shown in the overridden `host_vars`. You probably want to do this if you have one machine with better hardware than the others that should always be preferred as a primary service provider.
+*   `state` specifies the node state that machines will try to start in. It defaults to `BACKUP`. If all your nodes start as `BACKUP`, they will elect a `MASTER` based on a combination of `priority`, IP address and status of the `dns-resolver` service, though these details are mostly irrelevant. To create a preferred master, launch that one container with `state:MASTER` and a higher priority as shown in the overridden `host_vars`. You probably want to do this if you have one machine with better hardware than the others that should always be preferred as a primary service provider.
     ```yaml
     dns_nodes:
       vars:

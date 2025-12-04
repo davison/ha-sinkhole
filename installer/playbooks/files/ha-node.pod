@@ -1,5 +1,5 @@
 [Unit]
-Description=Shared network context for ha-sinkhole dns-node containers
+Description=Shared network context for ha-sinkhole dns-resolver containers
 
 [Pod]
 # healthcheck port for the dns service

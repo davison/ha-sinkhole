@@ -1,9 +1,9 @@
 # Get all subdirs with a Containerfile or Dockerfile
-# This finds 'dns-node/Containerfile', etc.
+# This finds 'dns-resolver/Containerfile', etc.
 IMAGE_DIRS := $(wildcard */Containerfile */Dockerfile)
 
 # This strips off the '/Containerfile' part to get just the dir names
-# Result: 'dns-node', 'vip-manager', 'blocklist-updater'
+# Result: 'dns-resolver', 'vip-manager', 'blocklist-updater'
 #IMAGE_NAMES := $(patsubst %/Containerfile,%,$(patsubst %/Dockerfile,%,$(IMAGE_DIRS)))
 
 # --- Configurable Variables ---
@@ -21,7 +21,7 @@ DANGLING ?= $(shell $(CONTAINER_CMD) images --filter "dangling=true" -q --no-tru
 all: $(foreach img,$(IMAGE_DIRS),build-$(patsubst %/Containerfile,%,$(patsubst %/Dockerfile,%,$(img))))
 
 # Generic pattern rule to build an image
-# e.g., 'make build-dns-node'
+# e.g., 'make build-dns-resolver'
 .SILENT:
 build-%:
 	@echo ">> Building $(TAG_PREFIX)/$*:$(TAG_VERSION)"

@@ -305,7 +305,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Failed healthchecks of the dns-node services",
+      "description": "Failed healthchecks of the dns-resolver services",
       "fieldConfig": {
         "defaults": {
           "color": {

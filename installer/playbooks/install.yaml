@@ -13,10 +13,10 @@
         state: restarted
         scope: system
 
-    - name: Restart dns-node
+    - name: Restart dns-resolver
       become: false
       ansible.builtin.systemd:
-        name: dns-node.service
+        name: dns-resolver.service
         state: restarted
         scope: user
 
@@ -114,14 +114,14 @@
           when: ansible_verbosity > 0 # Only when running with -v
 
         - name: Copy pod file
-          tags: [dns-node, stats-collector]
+          tags: [dns-resolver, stats-collector]
           ansible.builtin.copy:
             src: "ha-node.pod"
             dest: "{{ ha_sinkhole_common_systemd_dir }}/users/ha-node.pod"
             mode: "0644"
           notify:
             - Reload systemd (user)
-            - Restart dns-node
+            - Restart dns-resolver
             - Restart stats-collector
 
         - name: Template vip-manager container file
@@ -134,15 +134,15 @@
             - Reload systemd (root)
             - Restart vip-manager
 
-        - name: Template dns-node container file
-          tags: [dns-node]
+        - name: Template dns-resolver container file
+          tags: [dns-resolver]
           ansible.builtin.template:
-            src: "dns-node.container.j2"
-            dest: "{{ ha_sinkhole_common_systemd_dir }}/users/dns-node.container"
+            src: "dns-resolver.container.j2"
+            dest: "{{ ha_sinkhole_common_systemd_dir }}/users/dns-resolver.container"
             mode: "0644"
           notify:
             - Reload systemd (user)
-            - Restart dns-node
+            - Restart dns-resolver
 
         - name: Template stats-collector container file
           tags: [stats-collector]
@@ -178,7 +178,7 @@
     - name: 🚀 Enable and start services
       loop:
         - { name: "vip-manager.service", state: started, scope: system }
-        - { name: "dns-node.service", state: started, scope: user }
+        - { name: "dns-resolver.service", state: started, scope: user }
         - { name: "stats-collector.service", state: started, scope: user }
         - { name: "blocklist-updater.timer", state: started, scope: user }
       loop_control:

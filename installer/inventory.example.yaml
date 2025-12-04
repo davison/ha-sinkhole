@@ -111,7 +111,7 @@ dns_nodes:
       #interface: eth0
 
       # Defaults to the container's hostname (container ID). MUST be unique for
-      # each dns-node, leave commented unless you really need this.
+      # each dns-resolver, leave commented unless you really need this.
       #vrrp_router_id: node_name
 
   # Hosts in the ha_nodes group with optional overrides in settings

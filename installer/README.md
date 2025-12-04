@@ -57,7 +57,7 @@ There are 3 main sections to the inventory;
 
 Let's take the example of an HA setup where one machine has better hardware or connectivity than the other and we always prefer using this node to resolve queries, with the other acting as backup only when it's unavailable. In the default configuration supplied, all nodes are equal: they all start in a `state: BACKUP` and with `priority: 100`. The first thing the `vip-manager` does when these machines are installed is choose a primary and dynamically set its `state: MASTER` which might not be the one we want.
 
-We can override the default settings like so to make our `dns1` machine always be the primary for as long as the `dns-node` is running and healthy:
+We can override the default settings like so to make our `dns1` machine always be the primary for as long as the `dns-resolver` is running and healthy:
 
 ```yaml
 dns_nodes:
