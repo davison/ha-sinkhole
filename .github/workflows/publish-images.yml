@@ -147,6 +147,11 @@ jobs:
         run: |
           echo "version=$(cat ${{ matrix.service }}/VERSION)" >> $GITHUB_OUTPUT
 
+      - name: Create v-prefixed version for tags
+        id: version_tag
+        run: |
+          echo "vtag=v$(cat ${{ matrix.service }}/VERSION)" >> $GITHUB_OUTPUT
+
       - name: Read description from Containerfile
         id: extract_description
         run: |
@@ -160,8 +165,8 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/${{ matrix.service }}
           tags: |
-            # Tag with the version from the VERSION file
-            type=raw,value=${{ steps.read_version.outputs.version }}
+            # Tag with the v-prefixed version from the VERSION file
+            type=raw,value=${{ steps.version_tag.outputs.vtag }}
             # If this is a push to 'main', also tag as 'latest'
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 

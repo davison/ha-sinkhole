@@ -63,7 +63,7 @@ Take a look through any open issues to see what things are a priority, and what 
 ## Developing and building the container images
 This project contains multiple container images (each in its own immediate sub-directory) and provides a `Makefile` to discover and build them. You'll need your distro's version of build tools installed to be able to run `make` and get local builds of the images for faster dev/test cycles.
 
-Each build image has its own `VERSION` file with the current semantic version number of the image in it. This file is updated automatically by github action workflows based on the commit message and the files that have been modified in the commit. You should rarely need to change this manually but it relies on adherance to the [coding rules](#coding-style) in order to work.
+Each build image has its own `VERSION` file with the current semantic version number of the image in it (e.g., `0.3.1`). When container images are published, they are tagged with a 'v' prefix (e.g., `v0.3.1`) following common container tagging conventions. The VERSION file is updated automatically by github action workflows based on the commit message and the files that have been modified in the commit. You should rarely need to change this manually but it relies on adherance to the [coding rules](#coding-style) in order to work.
 
 ### Building all images locally
 From the project root..
@@ -114,7 +114,7 @@ ansible-playbook -i ../.local/inventory.yaml playbooks/install.yaml
 ## Adding a new image
 1. Create a new immediate sub-directory under the repository root (e.g., `./my-component/`).
 2. Add a `Containerfile` (don't use `Dockerfile`) in that directory.
-3. Add a `VERSION` file with the initial version number for the component
+3. Add a `VERSION` file with the initial version number for the component (e.g., `0.1.0` without a 'v' prefix)
 4. Add the build arg and the 4 OCI labels
 ```Dockerfile
   ARG BUILD_VERSION
