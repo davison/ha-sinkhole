@@ -25,7 +25,8 @@ error_exit() {
     printf "${cross_mark} ERROR: $1\n" >&2
     if [[ -n "${logfile:-}" && -f "${logfile:-}" ]]; then
         read -r -e -p "  Would you like to review the log file (y/N)? " review < /dev/tty
-        if [[ "${review,,}" == "y" || "${review,,}" == "yes" ]]; then
+        review=$(echo "$review" | tr '[:upper:]' '[:lower:]')
+        if [[ "$review" == "y" || "$review" == "yes" ]]; then
             less "${logfile}"
         fi
     fi
