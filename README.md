@@ -41,13 +41,22 @@ Whether you're installing on a raspberry pi, a bare metal server, a local VM, on
 
 Both controller and the target machines you want to install components on need to meet some criteria:
 
-1. Your controller machine has an up to date `linux` distro or MacOS (it may work with Windows but I've no idea).
-2. You have a container management application installed on that same machine. [podman](https://podman.io/) is strongly recommended, [docker](https://www.docker.com/) should also just work. Install it using your distro's packaging tool.
-3. You have added your SSH key to a local `ssh-agent` with `ssh-add` on the controller node and the `SSH_AUTH_SOCK` environment variable is set (check by running `env | grep SSH`)
-4. You have one or more target nodes to deploy `ha-sinkhole` components to and these also have suitable and modern operating systems (Linux, RasPi, MacOS)
-5. You can SSH to each of your target nodes and your user can gain `root` with `sudo`.
+**Controller machine (where you run the installer):**
 
-The installation makes use of passwordless SSH and being able to become root on the target nodes in order to perform any install or uninstall task, so you will need to set these up first if you don't already have them working.
+1. An up-to-date `linux` distro or macOS (Windows compatibility unknown)
+2. Container runtime installed: [podman](https://podman.io/) (recommended) or [docker](https://www.docker.com/)
+3. SSH agent running with your key loaded: `ssh-add ~/.ssh/id_ed25519` (verify with `ssh-add -l`)
+4. Environment variable `SSH_AUTH_SOCK` is set (verify with `env | grep SSH`)
+5. **macOS only:** Install Ansible natively with `pipx install ansible-core` (container mode has limitations on macOS)
+
+**Target nodes (where components will be installed):**
+
+1. Modern Linux OS (also works on RasPi, macOS)
+2. SSH access configured - you can SSH to each node
+3. Your user can become root with `sudo` **without a password prompt**
+   - Configure with: `echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/$USER`
+
+The installation makes use of passwordless SSH and passwordless sudo on the target nodes in order to perform any install or uninstall task, so you will need to set these up first if you don't already have them working.
 
 # ⏩ Quick Start Guide
 
@@ -79,9 +88,16 @@ Below is an example config to get 2 remote nodes installed (accessible at `192.1
 
 Once you have your inventory (config) you can run the [installer](./installer/README.md) container via the shell script wrapper. This will ask for the location of your inventory file and then run through the installation on both your nodes in parallel.
 
+**Linux:**
 ```bash
-# re-directs to the raw install.sh file in this repo
 curl -sL https://bit.ly/ha-install | bash
+```
+
+**macOS:**
+```bash
+curl -sL https://bit.ly/ha-install -o /tmp/install.sh && \
+  chmod +x /tmp/install.sh && \
+  /tmp/install.sh -n
 ```
 
 You should hopefully see something like..

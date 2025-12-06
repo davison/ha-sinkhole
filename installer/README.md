@@ -4,40 +4,82 @@ HA Sinkhole's installer package is a container that wraps [ansible](https://docs
 
 What this means for HA Sinkhole is that multiple types of nodes can be installed simultaneously on remote target nodes and the installer will only take action as needed. If a file already exists, it won't recreate it, if a service that needs to be running already is, it will do nothing. This makes installs idempotent and the installer can safely be run multiple times for the same inventory. Equally, if you want to change an item of configuration, you change it in the inventory file, re-run the installer and only that change will be made. The installer takes care of dependencies such as needing to reload `systemd` and restart services if a service unit file was changed.
 
-There are some [requirements](../README.md#pre-flight-checklist) for machines that run the installer package or that are target nodes for component installations. The main requirement is a working `ssh` setup. You must be able to SSH to each target node you wish to install to or manage, and must be able to do so with a key (and not a password). Once there, your user must be able to become root. When run, the install container has your SSH suthentication socket volume mounted in so that it can access your key when performing the SSH login. This socket is typically exposed as an environment variable `SSH_AUTH_SOCK`. You can check that this is setup correctly with the following 3 commands where you should see similar output to those below:
+There are some [requirements](../README.md#pre-flight-checklist) for machines that run the installer package or that are target nodes for component installations. The main requirements are a working SSH setup and passwordless sudo on target nodes.
+
+## SSH Authentication Setup
+
+**Linux:**
+
+You must be able to SSH to each target node with key-based authentication. The installer container needs access to your SSH agent. Verify your setup with:
 
 ```bash
-# check the Env Var is correctly set
+# Check SSH_AUTH_SOCK is set
 env | grep SSH_AUTH_SOCK
-SSH_AUTH_SOCK=/home/you/.ssh/agent/s.7IJ34gcr2n.agent.4LfAPQvf2f
+# Should show: SSH_AUTH_SOCK=/path/to/agent.socket
 
-# show the file/socket that the Env Var points to
+# Verify it's a socket
 ls -al $SSH_AUTH_SOCK
-srw------- 1 you you 0 Nov  7 22:33 /home/you/.ssh/agent/s.7IJ34gcr2n.agent.4LfAPQvf2f=
+# Should show: srw------- ... /path/to/agent.socket
 
-# List the keys that are known to the current agent
+# Verify keys are loaded
 ssh-add -l
-2048 SHA256:4R9ob13EdlC4aHE4Fc0pJFM9hLAzQr8m4BdFrqKpWSw /home/you/.ssh/id_rsa (RSA)
+# Should list your SSH key(s)
 ```
-(real output has been changed)
 
-If you don't get substantially similar output that shows your specific values, the installer won't work. 
+If the last command shows no keys, add yours with: `ssh-add ~/.ssh/id_ed25519`
 
-* if only the last command failed, run `ssh-add` on its own to add your default key to the agent then try to list it again.
-* if either of the first 2 commands fail, or the 2nd one doesn't show the `srw-------` prefix denoting a socket that you can read and write to, then you will need to fix your ssh setup which is beyond the scope of this doc.
+**macOS:**
+
+Container mode has SSH and permission limitations on macOS. Use **native mode** instead:
+
+```bash
+# Install Ansible natively
+pipx install ansible-core
+
+# Verify SSH agent has your key
+ssh-add -l
+
+# Run installer with -n flag
+./install.sh -f /path/to/inventory.yaml -n
+```
 
 ## Usage
 
-Once an inventory has been created, the simplest use of the installer is via the wrapper script that just validates some parameters and invokes the container runtime to perform the tasks. The following two commands will completely install and then decommision/uninstall everything declared in the inventory.
+Once an inventory has been created, use the wrapper script to run the installer.
+
+**Linux:**
 
 ```bash
-curl -sL https://bit.ly/ha-install | bash -s -- \
-  -f /path/to/inventory.yaml -c install
-curl -sL https://bit.ly/ha-install | bash -s -- \
-  -f /path/to/inventory.yaml -c uninstall
+# One-liner install
+curl -sL https://bit.ly/ha-install | bash -s -- -f /path/to/inventory.yaml
+
+# Or for uninstall
+curl -sL https://bit.ly/ha-install | bash -s -- -f /path/to/inventory.yaml -c uninstall
 ```
 
-It's best to always run the install wrapper shell script in the way shown above to ensure you have the latest version each time. An out of date wrapper, although containing very little of the install process itself, is responsible for launching the correct install container and may cause failures or breakages if out of date.
+**macOS:**
+
+```bash
+# Download the script first
+curl -sL https://bit.ly/ha-install -o install.sh
+chmod +x install.sh
+
+# Run in native mode
+./install.sh -f /path/to/inventory.yaml -n
+
+# Or for uninstall
+./install.sh -f /path/to/inventory.yaml -c uninstall -n
+```
+
+**Options:**
+
+- `-f <file>` - Path to inventory YAML file (required)
+- `-c <command>` - Command to run: `install` (default) or `uninstall`
+- `-n` - Native mode (run Ansible directly, not in container - required on macOS)
+- `-l` - Use local installer container (for development only)
+- `-h` - Show help
+
+It's best to always fetch the latest wrapper script to ensure compatibility with the current installer container version.
 
 ## Configuration
 
