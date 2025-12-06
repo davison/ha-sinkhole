@@ -107,6 +107,13 @@
             # Convert the content string into a usable Ansible dictionary
             ha_sinkhole_manifest: "{{ manifest_lookup.content | from_yaml }}"
 
+        - name: Create systemd directories
+          tags: [systemd]
+          ansible.builtin.file:
+            path: "{{ ha_sinkhole_common_systemd_dir }}/users"
+            state: directory
+            mode: "0755"
+
         - name: DEBUG Verify manifest file content was fetched
           tags: [manifest]
           ansible.builtin.debug:
