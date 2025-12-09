@@ -1,13 +1,25 @@
-// define local stack
 
-prometheus.scrape "coredns" {
-  targets = [
-    {
-      job         = "ha-sinkhole-dns-resolver",
-      __address__ = "127.0.0.1:9153",
-      host        = "dns-hepburn",
-    },
-  ]
-  scrape_native_histograms = true  
-  forward_to = [prometheus.remote_write.local_stack.receiver]
+prometheus.remote_write "prometheus" {
+  endpoint {
+    url = "https://" + sys.env("PROMETHEUS_HOST") + "/api/prom/push"
+  }
+}
+
+discovery.relabel "metrics_integrations_integrations_coredns" {
+  targets = [{	
+    __address__ = "127.0.0.1:9153",
+    cluster     = "ha-sinkhole",
+  }]
+
+  rule {
+    target_label = "instance"
+    replacement  = sys.env("REAL_HOST")
+  }
+}
+
+prometheus.scrape "metrics_integrations_integrations_coredns" {
+  targets                   = discovery.relabel.metrics_integrations_integrations_coredns.output
+  scrape_native_histograms  = false  
+  forward_to                = [prometheus.remote_write.prometheus.receiver]
+  job_name                  = "integrations/coredns"
 }

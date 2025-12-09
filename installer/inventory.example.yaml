@@ -80,12 +80,12 @@ dns_nodes:
     #blocklist_urls:
     #  - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
     
-    # cloud_* are the 3 properties needed to be able to send metrics to your 
+    # prometheus_* are the 3 properties needed to be able to send metrics to your 
     # Grafana cloud instance. See the README for the stats-collector container
     # for a comprehensive outline on how to obtain these values.
-    #cloud_instance: prometheus-prod-00-prod-eu-west-1.grafana.net
-    #cloud_user: 1234567
-    #cloud_api_token: glc_eyJvIjoiDPU5M...UAd2rzdd4yIn12
+    #prometheus_instance: prometheus-prod-00-prod-eu-west-1.grafana.net
+    #prometheus_user: 1234567
+    #prometheus_api_token: glc_eyJvIjoiDPU5M...UAd2rzdd4yIn12
     
     # vars that could potentially be overridden on a per host basis must be
     # defined in a host_vars: section (and optionally overridden in a 
