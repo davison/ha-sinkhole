@@ -1,7 +1,7 @@
 
 prometheus.remote_write "prometheus" {
   endpoint {
-    url = "https://" + sys.env("PROMETHEUS_HOST") + "/api/prom/push"
+    url = sys.env("PROMETHEUS_ENDPOINT")
   }
 }
 
