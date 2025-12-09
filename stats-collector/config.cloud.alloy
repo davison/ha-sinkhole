@@ -1,9 +1,9 @@
 
 prometheus.remote_write "prometheus" {
   endpoint {
-    url = "https://" + sys.env("PROMETHEUS_HOST") + "/api/prom/push"
+    url = sys.env("PROMETHEUS_ENDPOINT")
     basic_auth {
-      username = sys.env("PROMETHEUS_ACCOUNT") 
+      username = sys.env("PROMETHEUS_USER") 
       password_file = "/run/secrets/prometheus_api_token"
     }
   }
