@@ -7,10 +7,10 @@ After=network-online.target
 [Container]
 Pod=ha-node.pod
 Image=ghcr.io/davison/ha-sinkhole/stats-collector:{{ ha_sinkhole_manifest[install_channel]['stats-collector'] | default('MISSING_VERSION') }}
-Environment=PROMETHEUS_HOST={{ cloud_instance | default('') }}
-Environment=PROMETHEUS_ACCOUNT={{ cloud_user | default('') }}
+Environment=PROMETHEUS_HOST={{ prometheus_instance | default('') }}
+Environment=PROMETHEUS_ACCOUNT={{ prometheus_user | default('') }}
 Environment=REAL_HOST={{ inventory_hostname }}
-{% if cloud_api_token is defined %}Secret=prometheus_api_token{% endif %}
+{% if prometheus_api_token is defined %}Secret=prometheus_api_token{% endif %}
 LogDriver=journald
 
 [Service]

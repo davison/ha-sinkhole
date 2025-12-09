@@ -1,5 +1,5 @@
 
-prometheus.remote_write "prometheus_cloud" {
+prometheus.remote_write "prometheus" {
   endpoint {
     url = "https://" + sys.env("PROMETHEUS_HOST") + "/api/prom/push"
     basic_auth {
@@ -24,6 +24,6 @@ discovery.relabel "metrics_integrations_integrations_coredns" {
 prometheus.scrape "metrics_integrations_integrations_coredns" {
   targets                   = discovery.relabel.metrics_integrations_integrations_coredns.output
   scrape_native_histograms  = false  
-  forward_to                = [prometheus.remote_write.prometheus_cloud.receiver]
+  forward_to                = [prometheus.remote_write.prometheus.receiver]
   job_name                  = "integrations/coredns"
 }

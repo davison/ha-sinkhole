@@ -23,14 +23,14 @@ The following 3 configuration items are needed in your inventory in order to pus
 ```yaml
     dns-resolvers:
       vars:
-        cloud_instance: prometheus-prod-NN-prod-eu-west-1.grafana.net
-        cloud_user: 1234567
-        cloud_api_token: glc_eyJvIjoiDPU5M...UAd2rzdd4yIn12
+        prometheus_instance: prometheus-prod-NN-prod-eu-west-1.grafana.net
+        prometheus_user: 1234567
+        prometheus_api_token: glc_eyJvIjoiDPU5M...UAd2rzdd4yIn12
 ```
 
-To find the first two values, log in to your grafana UI with an admin account and open **Connections > Data sources** and select your prometheus service (on the free tier it will be named `grafanacloud-yourusername-prom`). The URL you need is in the `Connection` section, labeled `Prometheus server URL`. Copy ONLY the hostname into the `cloud_instance` config item in your inventory as shown above, don't include the `https://` or anything after the hostname.
+To find the first two values, log in to your grafana UI with an admin account and open **Connections > Data sources** and select your prometheus service (on the free tier it will be named `grafanacloud-yourusername-prom`). The URL you need is in the `Connection` section, labeled `Prometheus server URL`. Copy ONLY the hostname into the `prometheus_instance` config item in your inventory as shown above, don't include the `https://` or anything after the hostname.
 
-The value of the `cloud_user` is in the section below named `Authentication`, it's labeled `User` and will be a 6-8 digit integer.
+The value of the `prometheus_user` is in the section below named `Authentication`, it's labeled `User` and will be a 6-8 digit integer.
 
 Obtaining the API token needs some work 😅
 
@@ -43,7 +43,7 @@ Obtaining the API token needs some work 😅
 7. Click the **Add token** button at the bottom of the policy you just created (not any other policy that might also be there!)
 8. Name it `ha-sinkhole` and select **No expiry**
 9. Create the token and copy it to your clipboard as suggested
-10. Paste the token into the `cloud_api_token` variable in your inventory and save it. 
+10. Paste the token into the `prometheus_api_token` variable in your inventory and save it. 
 
 If you lose the token, you'll need to follow steps 7 to 10 again to create a new one.
 

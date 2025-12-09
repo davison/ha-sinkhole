@@ -63,18 +63,18 @@
             mode: "0644"
 
         - name: Create or force update of podman secret for Prometheus API token
-          when: cloud_api_token is defined
+          when: prometheus_api_token is defined
           become: false
           containers.podman.podman_secret:
             name: prometheus_api_token
             state: present
-            data: "{{ cloud_api_token }}"
+            data: "{{ prometheus_api_token }}"
             # The 'force: true' ensures the secret is overwritten even
             # if it already exists, as the contents cannot be compared.
             force: true
 
         - name: Ensure secret is removed if token variable is NOT defined
-          when: cloud_api_token is not defined
+          when: prometheus_api_token is not defined
           containers.podman.podman_secret:
             name: prometheus_api_token
             state: absent
