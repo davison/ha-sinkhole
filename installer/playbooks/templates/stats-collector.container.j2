@@ -10,7 +10,7 @@ Image=ghcr.io/davison/ha-sinkhole/stats-collector:{{ ha_sinkhole_manifest[instal
 Environment=PROMETHEUS_HOST={{ cloud_instance | default('') }}
 Environment=PROMETHEUS_ACCOUNT={{ cloud_user | default('') }}
 Environment=REAL_HOST={{ inventory_hostname }}
-Secret=prometheus_api_token
+{% if cloud_api_token is defined %}Secret=prometheus_api_token{% endif %}
 LogDriver=journald
 
 [Service]
