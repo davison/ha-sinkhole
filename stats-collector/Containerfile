@@ -7,11 +7,12 @@ LABEL org.opencontainers.image.description="Collector for metrics and logs"
 LABEL org.opencontainers.image.licenses=MIT
 LABEL org.opencontainers.image.version="$BUILD_VERSION"
 
-COPY config.cloud.alloy /etc/alloy/
-COPY config.local.alloy /etc/alloy/
+COPY config.auth.alloy /etc/alloy/
+COPY config.no_auth.alloy /etc/alloy/
 
+# should be overridden by the Exec line of the container quadlet
 CMD ["run", \
      "--server.http.listen-addr=0.0.0.0:12345", \
      "--storage.path=/var/lib/alloy/data", \
      "--disable-reporting=true", \
-     "/etc/alloy/config.cloud.alloy"]
+     "/etc/alloy/config.no_auth.alloy"]
