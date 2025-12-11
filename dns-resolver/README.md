@@ -1,4 +1,4 @@
-# DNS Node
+# DNS Resolver
 
 The `dns-resolver` container is responsible for DNS resolution using [CoreDNS](https://coredns.io/), a flexible and extensible DNS server. It serves DNS queries and can be configured to block specific domains based on the blocklists provided by the [blocklist-updater](../blocklist-updater/README.md) container. The `dns-resolver` mounts the same host volume as the updater; `/var/lib/ha-sinkhole/data` and reads the consolidated `blocklists.hosts` file that the updater creates. If the file changes, `coredns` will reload the contents of it.
 
