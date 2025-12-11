@@ -180,10 +180,9 @@ if [[ -z "$installer_container" ]]; then
     ok "Finding installer version from ${bold}${channel}${reset} release manifest..."
     installer_version=$(get_installer_version "$channel")
     installer_container="ghcr.io/davison/ha-sinkhole/installer:${installer_version}"
+    ok "Pulling installer container: ${bold}${installer_version}${reset}..."
+    $container_cmd pull "$installer_container" > /dev/null 2>&1 || error_exit "Failed to pull installer container: ${bold}${installer_container}${reset}"
 fi
-
-ok "Pulling installer container: ${bold}${installer_version}${reset}..."
-$container_cmd pull "$installer_container" > /dev/null 2>&1 || error_exit "Failed to pull installer container: ${bold}${installer_container}${reset}"
 
 logfile=$(mktemp /tmp/ha-sinkhole-log.XXXXXX)
 ok "Running remote ${playbook}, this may take a minute or two. The full log is at ${bold}$logfile${reset}\n"
