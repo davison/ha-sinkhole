@@ -10,7 +10,8 @@ Image=ghcr.io/davison/ha-sinkhole/stats-collector:{{ ha_sinkhole_manifest[instal
 Environment=PROMETHEUS_ENDPOINT={{ prometheus_endpoint | default('') }}
 Environment=PROMETHEUS_USER={{ prometheus_user | default('') }}
 Environment=REAL_HOST={{ inventory_hostname }}
-{% if prometheus_api_token is defined %}Secret=prometheus_api_token{% endif %}
+{% if prometheus_api_token is defined %}Secret=prometheus_api_token
+{% endif %}
 LogDriver=journald
 Exec=run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data --disable-reporting=true /etc/alloy/config.{{ "" if prometheus_user is defined else "no_" }}auth.alloy
 
