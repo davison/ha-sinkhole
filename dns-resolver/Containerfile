@@ -9,11 +9,18 @@ LABEL org.opencontainers.image.version="$BUILD_VERSION"
 
 # Install coredns (which creates the user), gettext (for envsubst),
 # and su-exec (to drop privileges)
-RUN apk add --no-cache coredns gettext su-exec bash
+RUN apk add --no-cache coredns gettext su-exec bash curl jq
 
 COPY Corefile.template /etc/coredns/Corefile.template
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+# fetch the custom built coredns that includes the warnlist plugin (and 
+# removes many others) so that we can get rich blocklist metrics
+RUN mkdir -p /usr/local/bin
+RUN DOWNLOAD_URL=$(curl -sL https://api.github.com/repos/davison/coredns/releases/latest | jq -r '.assets[] | select(.name=="coredns-custom") | .browser_download_url'); \
+    echo $DOWNLOAD_URL; \
+    curl -fsSL "$DOWNLOAD_URL" -o /usr/local/bin/coredns && chmod +x /usr/local/bin/coredns 
 
 # Entrypoint will run as root by default
 ENTRYPOINT ["/entrypoint.sh"]
