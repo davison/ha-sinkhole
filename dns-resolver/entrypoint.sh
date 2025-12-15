@@ -23,4 +23,4 @@ chown coredns:coredns /etc/coredns/Corefile
 
 # 3. Drop privileges: Execute the original CMD (coredns -conf ...)
 #    as the 'coredns' user.
-exec su-exec coredns /usr/bin/coredns "$@"
+exec su-exec coredns /usr/local/bin/coredns "$@"

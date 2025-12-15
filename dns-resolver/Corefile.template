@@ -14,6 +14,12 @@
 
     forward ${LOCAL_DOMAIN} ${LOCAL_UPSTREAM_DNS}
 
+    warnlist {
+        file /data/blocklists.hosts hostfile
+        reload 1h
+        match_subdomains false
+    }
+
     hosts /data/blocklists.hosts {
         # only a single hosts plugin is permitted per server block so 
         # to work around that, inline the local hosts here. A glob is
