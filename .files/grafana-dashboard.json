@@ -21,7 +21,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "12.4.0-19508498046"
+      "version": "12.4.0-20160616057"
     },
     {
       "type": "panel",
@@ -132,12 +132,146 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
           "expr": "sum by(cluster) (increase(coredns_acl_allowed_requests_total[$__range]))",
           "legendFormat": "Total Requests",
+          "range": true,
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "displayName": "Requests blocked",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 5,
+        "y": 0
+      },
+      "id": 124,
+      "interval": "60s",
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "same_as_value",
+        "reduceOptions": {
+          "calcs": [
+            "firstNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": true,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0-20160616057",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum by(cluster) (\n  increase(\n    coredns_warnlist_warnlist_hits_total [$__range]\n  )\n)",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "displayName": "% Requests blocked",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 10,
+        "y": 0
+      },
+      "id": 125,
+      "interval": "60s",
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "same_as_value",
+        "reduceOptions": {
+          "calcs": [
+            "firstNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": true,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0-20160616057",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum by(cluster) (\n  increase(\n    coredns_warnlist_warnlist_hits_total [$__range]\n  ) \n) /\nsum by(cluster) (\n  increase(\n    coredns_acl_allowed_requests_total [$__range]\n  )\n) *\n100",
+          "legendFormat": "__auto",
           "range": true,
           "refId": "A",
           "datasource": {
@@ -177,7 +311,7 @@
       "gridPos": {
         "h": 4,
         "w": 5,
-        "x": 5,
+        "x": 15,
         "y": 0
       },
       "id": 109,
@@ -199,7 +333,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -283,7 +417,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -359,7 +493,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -387,6 +521,7 @@
             "mode": "thresholds"
           },
           "decimals": 0,
+          "displayName": "failed upstream",
           "mappings": [],
           "min": 0,
           "noValue": "0",
@@ -434,7 +569,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -510,7 +645,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -585,7 +720,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -697,7 +832,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "datasource": {
@@ -706,7 +841,6 @@
           },
           "editorMode": "code",
           "expr": "sum(rate(coredns_acl_allowed_requests_total[2m]))",
-          "hide": false,
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -803,7 +937,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -823,7 +957,6 @@
           },
           "editorMode": "code",
           "expr": "histogram_quantile(\n  0.95,\n  sum by (le) (rate(coredns_dns_request_duration_seconds_bucket{server=\"dns://:1053\", zone=\".\"}[$__range]))\n)",
-          "hide": false,
           "legendFormat": "95th",
           "range": true,
           "refId": "B"
@@ -835,7 +968,6 @@
           },
           "editorMode": "code",
           "expr": "histogram_quantile(\n  0.9,\n  sum by (le) (rate(coredns_dns_request_duration_seconds_bucket{server=\"dns://:1053\", zone=\".\"}[$__range]))\n)",
-          "hide": false,
           "legendFormat": "90th",
           "range": true,
           "refId": "C"
@@ -896,7 +1028,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -966,7 +1098,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -1050,7 +1182,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -1123,7 +1255,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -1212,7 +1344,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -1284,7 +1416,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -1357,7 +1489,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -1453,7 +1585,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.4.0-19508498046",
+      "pluginVersion": "12.4.0-20160616057",
       "targets": [
         {
           "editorMode": "code",
@@ -1473,7 +1605,6 @@
           },
           "editorMode": "code",
           "expr": "sum by (instance) (rate(process_network_transmit_bytes_total[5m]))",
-          "hide": false,
           "legendFormat": "{{instance}} tx",
           "range": true,
           "refId": "B"
@@ -1509,10 +1640,10 @@
       "1d"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "HA Sinkhole",
   "uid": "wY4blRMGz",
-  "version": 11,
+  "version": 15,
   "weekStart": "",
   "id": null
 }
