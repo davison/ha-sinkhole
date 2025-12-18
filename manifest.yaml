@@ -18,7 +18,7 @@
 
 stable:
   # Component versions guaranteed to work together after integration testing.
-  dns-node: "v0.3.2"
+  dns-resolver: "v0.4.0"
   stats-collector: "v0.1.5"
   vip-manager: "v0.1.8"
   blocklist-updater: "v0.1.5"
@@ -26,7 +26,7 @@ stable:
 
 edge:
   # Latest published component versions used for pre-release testing.
-  dns-resolver: "v1.1.0"
+  dns-resolver: "v1.1.1"
   stats-collector: "v1.0.2"
   vip-manager: "v1.0.0"
   blocklist-updater: "v1.0.0"
