@@ -30,4 +30,4 @@ edge:
   stats-collector: "v1.0.2"
   vip-manager: "v1.0.0"
   blocklist-updater: "v1.0.0"
-  installer: "v1.0.3"
+  installer: "v1.0.4"
