@@ -18,7 +18,10 @@ RUN chmod +x /entrypoint.sh
 # fetch the custom built coredns that includes the warnlist plugin (and 
 # removes many others) so that we can get rich blocklist metrics
 RUN mkdir -p /usr/local/bin
-RUN DOWNLOAD_URL=$(curl -sL https://api.github.com/repos/davison/coredns/releases/latest | jq -r '.assets[] | select(.name=="coredns-custom") | .browser_download_url'); \
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then ARCH="amd64"; fi && \
+    if [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; fi && \
+    DOWNLOAD_URL=$(curl -sL https://api.github.com/repos/davison/coredns/releases/latest | jq -r '.assets[] | select(.name=="coredns-custom-'"$ARCH"'") | .browser_download_url'); \
     echo $DOWNLOAD_URL; \
     curl -fsSL "$DOWNLOAD_URL" -o /usr/local/bin/coredns && chmod +x /usr/local/bin/coredns 
 
