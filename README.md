@@ -27,7 +27,7 @@ The project is inspired by the fantastic [pi-hole](https://github.com/pi-hole/pi
 
 I've used pi-hole for years and couldn't live without that functionality on my network, but it's not easy to make it highly available and I really wanted that. There are several guides available for making pi-hole HA, but they're fragile, bolt-on solutions which are unsupported by the pi-hole project.
 
-`ha-sinkhole` was created specifically to solve that problem. It addresses that single concern and does not, by design, offer many of the existing pi-hole features (notably DHCP). Metric storage and visualisation is enabled via open source components of the [Grafana](https://grafana.com) eco-system and you can run them locally or connect to your Grafana cloud account and manage them there. Currently there is an early version of metrics available but only to cloud hosted grafana/prometheus.
+`ha-sinkhole` was created specifically to solve that problem. It addresses that single concern and does not, by design, offer many of the existing pi-hole features (notably DHCP). Metric storage and visualisation is enabled via open source components of the [Grafana](https://grafana.com) eco-system and you can run them locally or connect to your Grafana cloud account and manage them there.
 
 ![overview](.files/ha-sinkhole-architecture-overview.drawio.svg "Architecture Overview")
 
