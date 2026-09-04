@@ -1,6 +1,7 @@
-name: 📖 Lint Commit Messages
+name: Lint commit messages
 
-on: [pull_request]
+on:
+  pull_request:
 
 permissions:
   contents: read
@@ -8,31 +9,10 @@ permissions:
 
 jobs:
   commitlint:
+    name: Lint commit messages
     runs-on: ubuntu-latest
     steps:
-      - name: ⬇️ Check out code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: 🛠️ Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          cache-dependency-path: ${{ github.workspace }}/.github/package-lock.json
-          node-version: lts/*
-          cache: npm
-
-      - name: 📥 Install dependencies
-        run: npm install
-        # Tell npm where to find the package.json
-        working-directory: .github 
-
-      - name: Print versions
-        run: |
-          git --version
-          node --version
-          npm --version
-          npx commitlint --version
-
-      - name: Validate PR commits with commitlint
-        run: npx commitlint -g ${{ github.workspace }}/.github/commitlint.config.mjs --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+      - uses: radiusred/.github/.github/actions/commitlint@main
